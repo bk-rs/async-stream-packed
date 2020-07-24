@@ -1,0 +1,16 @@
+[package]
+name = "async-stream-packed-demo-smol"
+version = "0.1.0"
+authors = ["vkill <vkill.net@gmail.com>"]
+edition = "2018"
+
+[[bin]]
+name = "unionable"
+path = "src/unionable.rs"
+
+[dependencies]
+async-stream-packed = { path = "../..", version = "0.1", features = ["unionable"] }
+futures = "0.3"
+blocking = "0.4"
+async-io = "0.1"
+async-tls = "0.9"

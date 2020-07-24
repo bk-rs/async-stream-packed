@@ -1,0 +1,33 @@
+[package]
+name = "async-stream-packed"
+version = "0.1.0"
+authors = ["vkill <vkill.net@gmail.com>"]
+edition = "2018"
+description = "Asynchronous ssh2."
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/bk-rs/async-stream-packed"
+homepage = "https://github.com/bk-rs/async-stream-packed"
+documentation = "https://docs.rs/async-stream-packed"
+keywords = []
+categories = ["asynchronous"]
+readme = "README.md"
+
+[features]
+syncable_with_context = []
+syncable_with_waker = []
+unionable = ["either"]
+upgradable = ["async-trait"]
+tls = []
+
+[dependencies]
+futures-util = { version = "0.3", default-features = false, features = ["io"] }
+either = { version = "1.5", default-features = false, features = [], optional = true}
+async-trait = { version = "0.1", default-features = false, features = [], optional = true }
+
+[dev-dependencies]
+futures-executor = { version = "0.3", default-features = false, features = ["default"] }
+
+[workspace]
+members = [
+    "demos/smol",
+]
