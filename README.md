@@ -7,6 +7,7 @@
 ### smol 
 
 * [unionable](demos/smol/src/unionable.rs)
+* [upgradable_with_tls_client](demos/smol/src/upgradable_with_tls_client.rs)
 
 ## Dev
 
