@@ -92,8 +92,6 @@ where
     S: AsyncWrite + Unpin,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        println!("AllowStd.write {:?}", buf);
-
         match self.with_context(WakerKind::Write, |cx, stream| stream.poll_write(cx, buf)) {
             Poll::Ready(ret) => ret,
             Poll::Pending => Err(io::ErrorKind::WouldBlock.into()),
