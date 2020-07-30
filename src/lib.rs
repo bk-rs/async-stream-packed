@@ -16,12 +16,26 @@ pub use unionable::UnionableAsyncStream;
 #[cfg(feature = "upgradable")]
 pub mod upgradable;
 #[cfg(feature = "upgradable")]
-pub use upgradable::UpgradableAsyncStream;
+pub use upgradable::{UpgradableAsyncStream, Upgrader};
+
+#[cfg(feature = "upgradable_ext")]
+pub mod upgradable_ext;
+#[cfg(feature = "upgradable_ext")]
+pub use upgradable_ext::{UpgraderExtRefer, UpgraderExtTryIntoS};
 
 #[cfg(feature = "gradable")]
 pub mod gradable;
 #[cfg(feature = "gradable")]
-pub use gradable::GradableAsyncStream;
+pub use gradable::{Downgrader, GradableAsyncStream};
 
+//
+//
+//
 #[cfg(feature = "tls")]
 pub mod tls;
+
+#[cfg(all(feature = "tls", feature = "upgradable"))]
+pub use tls::{TlsClientUpgrader, TlsServerUpgrader};
+
+#[cfg(all(feature = "tls", feature = "gradable"))]
+pub use tls::{TlsClientDowngrader, TlsServerDowngrader};

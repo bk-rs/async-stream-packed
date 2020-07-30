@@ -1,4 +1,5 @@
 use std::io;
+use std::mem;
 
 use async_trait::async_trait;
 
@@ -7,36 +8,25 @@ use crate::upgradable::{Inner, UpgradableAsyncStream, Upgrader};
 pub type GradableAsyncStream<S, SU> = UpgradableAsyncStream<S, SU>;
 
 #[async_trait]
-pub trait Downgrader<S>: Upgrader<S> {
-    fn get_ref(output: &Self::Output) -> &S;
-    fn get_mut(output: &mut Self::Output) -> &mut S;
-    fn into_inner(output: Self::Output) -> io::Result<Option<S>>;
+pub trait Downgrader<S, SU>: Upgrader<S> {
+    async fn downgrade(output: Self::Output, upgrader: Option<SU>) -> io::Result<(S, Option<SU>)>;
 }
 
 impl<S, SU> GradableAsyncStream<S, SU>
 where
-    SU: Upgrader<S> + Downgrader<S>,
+    SU: Upgrader<S> + Downgrader<S, SU>,
 {
-    pub fn get_ref(&self) -> &S {
-        match &self.inner {
-            Inner::Pending((s, _)) => &s,
-            Inner::Upgraded(s) => SU::get_ref(s),
-            Inner::None => panic!("never"),
-        }
-    }
-
-    pub fn get_mut(&mut self) -> &mut S {
-        match &mut self.inner {
-            Inner::Pending((s, _)) => s,
-            Inner::Upgraded(s) => SU::get_mut(s),
-            Inner::None => panic!("never"),
-        }
-    }
-
-    pub fn into_inner(self) -> io::Result<Option<S>> {
-        match self.inner {
-            Inner::Pending((s, _)) => Ok(Some(s)),
-            Inner::Upgraded(s) => SU::into_inner(s),
+    pub async fn downgrade(&mut self) -> io::Result<()> {
+        match mem::replace(&mut self.inner, Inner::None) {
+            Inner::Pending((_, _)) => Err(io::Error::new(
+                io::ErrorKind::Other,
+                "do upgrade first or don't downgrade agent",
+            )),
+            Inner::Upgraded((stream, upgrader)) => {
+                let (stream, upgrader) = SU::downgrade(stream, upgrader).await?;
+                self.inner = Inner::Pending((stream, upgrader));
+                Ok(())
+            }
             Inner::None => panic!("never"),
         }
     }

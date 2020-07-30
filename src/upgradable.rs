@@ -17,8 +17,8 @@ pub(crate) enum Inner<S, SU>
 where
     SU: Upgrader<S>,
 {
-    Pending((S, SU)),
-    Upgraded(SU::Output),
+    Pending((S, Option<SU>)),
+    Upgraded((SU::Output, Option<SU>)),
     None,
 }
 
@@ -34,13 +34,13 @@ where
 {
     pub fn new(stream: S, upgrader: SU) -> Self {
         Self {
-            inner: Inner::Pending((stream, upgrader)),
+            inner: Inner::Pending((stream, Some(upgrader))),
         }
     }
 
     pub fn with_upgraded_stream(stream: SU::Output) -> Self {
         Self {
-            inner: Inner::Upgraded(stream),
+            inner: Inner::Upgraded((stream, None)),
         }
     }
 
@@ -53,9 +53,12 @@ where
 
     pub async fn upgrade(&mut self) -> io::Result<()> {
         match mem::replace(&mut self.inner, Inner::None) {
-            Inner::Pending((stream, mut upgrader)) => {
+            Inner::Pending((stream, upgrader)) => {
+                let mut upgrader =
+                    upgrader.ok_or(io::Error::new(io::ErrorKind::Other, "missing upgrader"))?;
+
                 let stream = upgrader.upgrade(stream).await?;
-                self.inner = Inner::Upgraded(stream);
+                self.inner = Inner::Upgraded((stream, Some(upgrader)));
                 Ok(())
             }
             Inner::Upgraded(_) => Err(io::Error::new(io::ErrorKind::Other, "don't upgrade agent")),
@@ -80,7 +83,7 @@ where
 
         match inner {
             Inner::Pending((s, _)) => Pin::new(s).poll_write(cx, buf),
-            Inner::Upgraded(s) => Pin::new(s).poll_write(cx, buf),
+            Inner::Upgraded((s, _)) => Pin::new(s).poll_write(cx, buf),
             Inner::None => panic!("never"),
         }
     }
@@ -91,7 +94,7 @@ where
 
         match inner {
             Inner::Pending((s, _)) => Pin::new(s).poll_flush(cx),
-            Inner::Upgraded(s) => Pin::new(s).poll_flush(cx),
+            Inner::Upgraded((s, _)) => Pin::new(s).poll_flush(cx),
             Inner::None => panic!("never"),
         }
     }
@@ -102,7 +105,7 @@ where
 
         match inner {
             Inner::Pending((s, _)) => Pin::new(s).poll_close(cx),
-            Inner::Upgraded(s) => Pin::new(s).poll_close(cx),
+            Inner::Upgraded((s, _)) => Pin::new(s).poll_close(cx),
             Inner::None => panic!("never"),
         }
     }
@@ -124,7 +127,7 @@ where
 
         match inner {
             Inner::Pending((s, _)) => Pin::new(s).poll_read(cx, buf),
-            Inner::Upgraded(s) => Pin::new(s).poll_read(cx, buf),
+            Inner::Upgraded((s, _)) => Pin::new(s).poll_read(cx, buf),
             Inner::None => panic!("never"),
         }
     }
@@ -142,7 +145,7 @@ where
 
         match inner {
             Inner::Pending((s, _)) => Pin::new(s).poll_seek(cx, pos),
-            Inner::Upgraded(s) => Pin::new(s).poll_seek(cx, pos),
+            Inner::Upgraded((s, _)) => Pin::new(s).poll_seek(cx, pos),
             Inner::None => panic!("never"),
         }
     }
@@ -160,7 +163,7 @@ where
 
         match inner {
             Inner::Pending((s, _)) => Pin::new(s).poll_fill_buf(cx),
-            Inner::Upgraded(s) => Pin::new(s).poll_fill_buf(cx),
+            Inner::Upgraded((s, _)) => Pin::new(s).poll_fill_buf(cx),
             Inner::None => panic!("never"),
         }
     }
@@ -171,7 +174,7 @@ where
 
         match inner {
             Inner::Pending((s, _)) => Pin::new(s).consume(amt),
-            Inner::Upgraded(s) => Pin::new(s).consume(amt),
+            Inner::Upgraded((s, _)) => Pin::new(s).consume(amt),
             Inner::None => panic!("never"),
         }
     }

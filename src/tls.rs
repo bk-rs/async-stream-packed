@@ -15,9 +15,9 @@ mod gradable_ {
     use crate::gradable::Downgrader;
     use crate::tls::{TlsClientUpgrader, TlsServerUpgrader};
 
-    pub trait TlsClientDowngrader<S>: Downgrader<S> + TlsClientUpgrader<S> {}
+    pub trait TlsClientDowngrader<S, SU>: Downgrader<S, SU> + TlsClientUpgrader<S> {}
 
-    pub trait TlsServerDowngrader<S>: Downgrader<S> + TlsServerUpgrader<S> {}
+    pub trait TlsServerDowngrader<S, SU>: Downgrader<S, SU> + TlsServerUpgrader<S> {}
 }
 
 #[cfg(feature = "gradable")]
