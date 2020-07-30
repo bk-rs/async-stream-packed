@@ -18,5 +18,10 @@ pub mod upgradable;
 #[cfg(feature = "upgradable")]
 pub use upgradable::UpgradableAsyncStream;
 
+#[cfg(feature = "gradable")]
+pub mod gradable;
+#[cfg(feature = "gradable")]
+pub use gradable::GradableAsyncStream;
+
 #[cfg(feature = "tls")]
 pub mod tls;

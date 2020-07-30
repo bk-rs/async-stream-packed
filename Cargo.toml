@@ -17,11 +17,12 @@ syncable_with_context = []
 syncable_with_waker = []
 unionable = ["either"]
 upgradable = ["async-trait"]
+gradable = ["upgradable"]
 tls = []
 
 [dependencies]
 futures-util = { version = "0.3", default-features = false, features = ["io"] }
-either = { version = "1.5", default-features = false, features = [], optional = true}
+either = { version = "1.5", default-features = false, features = [], optional = true }
 async-trait = { version = "0.1", default-features = false, features = [], optional = true }
 
 [dev-dependencies]

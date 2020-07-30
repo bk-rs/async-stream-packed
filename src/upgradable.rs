@@ -10,10 +10,10 @@ pub struct UpgradableAsyncStream<S, SU>
 where
     SU: Upgrader<S>,
 {
-    inner: Inner<S, SU>,
+    pub(crate) inner: Inner<S, SU>,
 }
 
-enum Inner<S, SU>
+pub(crate) enum Inner<S, SU>
 where
     SU: Upgrader<S>,
 {
