@@ -8,14 +8,8 @@ edition = "2018"
 name = "unionable"
 path = "src/unionable.rs"
 
-[[bin]]
-name = "upgradable_with_tls_client"
-path = "src/upgradable_with_tls_client.rs"
-
 [dependencies]
-async-stream-packed = { path = "../..", version = "0.1", features = ["unionable", "upgradable"] }
-async-stream-tls-upgrader = { version = "0.1.2", features = ["async_tls_client"]}
-futures = "0.3"
-blocking = "0.4"
-async-io = "0.1"
+async-stream-packed = { path = "../..", version = "0.1", features = ["unionable"] }
+futures-lite = "0.1"
+async-net = "0.1"
 async-tls = "0.9"

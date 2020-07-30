@@ -5,13 +5,12 @@ cargo run -p async-stream-packed-demo-smol --bin unionable httpbin.org 443 true 
 
 use std::env;
 use std::io;
-use std::net::{TcpStream, ToSocketAddrs};
 use std::str;
 
-use async_io::Async;
+use async_net::TcpStream;
 use async_tls::TlsConnector;
-use blocking::block_on;
-use futures::{AsyncReadExt, AsyncWriteExt};
+use futures_lite::future::block_on;
+use futures_lite::{AsyncReadExt, AsyncWriteExt};
 
 use async_stream_packed::UnionableAsyncStream;
 
@@ -33,32 +32,27 @@ async fn run() -> io::Result<()> {
         .unwrap_or_else(|| env::var("IS_TLS").unwrap_or("false".to_owned()))
         .parse()
         .unwrap();
-    let path = env::args()
+    let uri = env::args()
         .nth(4)
-        .unwrap_or_else(|| env::var("PATH").unwrap_or("/".to_owned()));
+        .unwrap_or_else(|| env::var("URI").unwrap_or("/".to_owned()));
 
-    println!("{} {} {} {}", domain, port, is_tls, path);
+    println!("{} {} {} {}", domain, port, is_tls, uri);
 
     //
-    let addr = format!("{}:{}", domain, port)
-        .to_socket_addrs()
-        .unwrap()
-        .next()
-        .unwrap();
-    println!("{}", addr);
+    let addr = format!("{}:{}", domain, port);
 
     let mut stream = if is_tls {
-        let stream = Async::<TcpStream>::connect(addr).await?;
+        let stream = TcpStream::connect(addr).await?;
         let stream = TlsConnector::default().connect(&domain, stream).await?;
         UnionableAsyncStream::one(stream)
     } else {
-        let stream = Async::<TcpStream>::connect(addr).await?;
+        let stream = TcpStream::connect(addr).await?;
         UnionableAsyncStream::the_other(stream)
     };
 
     let req_string = format!(
         "GET {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: curl/7.71.1\r\nAccept: */*\r\n\r\n",
-        path, domain
+        uri, domain
     );
     println!("{}", req_string);
 
