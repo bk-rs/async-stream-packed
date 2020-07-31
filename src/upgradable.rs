@@ -4,7 +4,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use async_trait::async_trait;
-use futures_util::io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite, SeekFrom};
+use futures_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite, SeekFrom};
 
 pub struct UpgradableAsyncStream<S, SU>
 where

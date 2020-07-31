@@ -14,7 +14,7 @@ readme = "README.md"
 
 [features]
 syncable_with_context = []
-syncable_with_waker = []
+syncable_with_waker = ["futures-util"]
 unionable = ["either"]
 upgradable = ["async-trait"]
 upgradable_ext = ["upgradable"]
@@ -22,11 +22,13 @@ gradable = ["upgradable"]
 tls = []
 
 [dependencies]
-futures-util = { version = "0.3", default-features = false, features = ["io"] }
+futures-io = { version = "0.3", default-features = false, features = ["std"] }
+futures-util = { version = "0.3", default-features = false, features = [], optional = true }
 either = { version = "1.5", default-features = false, features = [], optional = true }
 async-trait = { version = "0.1", default-features = false, features = [], optional = true }
 
 [dev-dependencies]
+futures-util = { version = "0.3", default-features = false, features = ["io"] }
 futures-executor = { version = "0.3", default-features = false, features = ["default"] }
 
 [workspace]

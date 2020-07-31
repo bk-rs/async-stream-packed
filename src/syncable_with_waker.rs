@@ -6,7 +6,7 @@ use std::io::{self, Read, Seek, Write};
 use std::pin::Pin;
 use std::sync::Arc;
 
-use futures_util::io::{AsyncRead, AsyncSeek, AsyncWrite};
+use futures_io::{AsyncRead, AsyncSeek, AsyncWrite};
 use futures_util::task::{waker_ref, ArcWake, AtomicWaker, Context, Poll, Waker};
 
 pub struct SyncableWithWakerAsyncStream<S> {

@@ -3,7 +3,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use either::Either;
-use futures_util::io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite, SeekFrom};
+use futures_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite, SeekFrom};
 
 pub struct UnionableAsyncStream<SL, SR> {
     inner: Either<SL, SR>,

@@ -2,7 +2,7 @@ use std::io::{self, BufRead, Read, Seek, Write};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use futures_util::io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite};
+use futures_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite};
 
 pub struct SyncableWithContextAsyncStream<'a, 'b, S> {
     inner: S,
