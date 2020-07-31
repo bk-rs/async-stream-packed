@@ -36,6 +36,3 @@ pub mod tls;
 
 #[cfg(all(feature = "tls", feature = "upgradable"))]
 pub use tls::{TlsClientUpgrader, TlsServerUpgrader};
-
-#[cfg(all(feature = "tls", feature = "gradable"))]
-pub use tls::{TlsClientDowngrader, TlsServerDowngrader};
