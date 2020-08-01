@@ -18,6 +18,7 @@ syncable_with_waker = ["futures-util"]
 unionable = ["either"]
 upgradable = ["async-trait"]
 tls = ["upgradable"]
+mail = ["upgradable", "tls"]
 
 [dependencies]
 futures-io = { version = "0.3", default-features = false, features = ["std"] }
