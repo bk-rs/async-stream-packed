@@ -3,9 +3,8 @@ mod syncable_with_context_tests {
     use std::io::{self, BufRead, Read, Seek, Write};
     use std::task::Poll;
 
-    use futures_executor::block_on;
-    use futures_util::future;
-    use futures_util::io::Cursor;
+    use futures_lite::future::{self, block_on};
+    use futures_lite::io::Cursor;
 
     use async_stream_packed::SyncableWithContextAsyncStream;
 

@@ -23,13 +23,12 @@ tls = []
 
 [dependencies]
 futures-io = { version = "0.3", default-features = false, features = ["std"] }
-futures-util = { version = "0.3", default-features = false, features = [], optional = true }
+futures-util = { version = "0.3", default-features = false, features = ["alloc"], optional = true }
 either = { version = "1.5", default-features = false, features = [], optional = true }
 async-trait = { version = "0.1", default-features = false, features = [], optional = true }
 
 [dev-dependencies]
-futures-util = { version = "0.3", default-features = false, features = ["io"] }
-futures-executor = { version = "0.3", default-features = false, features = ["default"] }
+futures-lite = { version = "0.1", default-features = false, features = [] }
 
 [workspace]
 members = [

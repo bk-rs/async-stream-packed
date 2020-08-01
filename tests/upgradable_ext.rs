@@ -3,11 +3,12 @@ mod upgradable_ext_tests {
     use std::io;
 
     use async_trait::async_trait;
-    use futures_executor::block_on;
-    use futures_util::io::Cursor;
+    use futures_lite::future::block_on;
+    use futures_lite::io::Cursor;
 
-    use async_stream_packed::{UpgradableAsyncStream, Upgrader};
-    use async_stream_packed::{UpgraderExtRefer, UpgraderExtTryIntoS};
+    use async_stream_packed::{
+        UpgradableAsyncStream, Upgrader, UpgraderExtRefer, UpgraderExtTryIntoS,
+    };
 
     struct SimpleUpgrader {}
 
