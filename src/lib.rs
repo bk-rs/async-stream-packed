@@ -21,7 +21,7 @@ pub use upgradable::{UpgradableAsyncStream, Upgrader};
 #[cfg(feature = "upgradable_ext")]
 pub mod upgradable_ext;
 #[cfg(feature = "upgradable_ext")]
-pub use upgradable_ext::{UpgraderExtRefer, UpgraderExtTryIntoS};
+pub use upgradable_ext::{UpgraderExtIntoStream, UpgraderExtRefer};
 
 #[cfg(feature = "gradable")]
 pub mod gradable;

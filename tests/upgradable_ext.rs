@@ -7,7 +7,7 @@ mod upgradable_ext_tests {
     use futures_lite::io::Cursor;
 
     use async_stream_packed::{
-        UpgradableAsyncStream, Upgrader, UpgraderExtRefer, UpgraderExtTryIntoS,
+        UpgradableAsyncStream, Upgrader, UpgraderExtIntoStream, UpgraderExtRefer,
     };
 
     struct SimpleUpgrader {}
@@ -35,11 +35,11 @@ mod upgradable_ext_tests {
         }
     }
 
-    impl<S> UpgraderExtTryIntoS<S> for SimpleUpgrader
+    impl<S> UpgraderExtIntoStream<S> for SimpleUpgrader
     where
         S: Send + 'static,
     {
-        fn try_into_s(output: Self::Output) -> io::Result<S> {
+        fn into_stream(output: Self::Output) -> io::Result<S> {
             Ok(output)
         }
     }
@@ -70,18 +70,54 @@ mod upgradable_ext_tests {
     }
 
     #[test]
-    fn try_into_s() -> io::Result<()> {
+    fn into_stream() -> io::Result<()> {
         block_on(async {
             let cursor = Cursor::new(b"foo");
             let stream = UpgradableAsyncStream::new(cursor, SimpleUpgrader {});
 
-            assert_eq!(stream.try_into_s()?.get_ref(), &b"foo");
+            assert_eq!(stream.into_stream()?.get_ref(), &b"foo");
 
             //
             let cursor = Cursor::new(b"foo");
             let stream = UpgradableAsyncStream::with_upgraded_stream(cursor);
 
-            assert_eq!(stream.try_into_s()?.get_ref(), &b"foo");
+            assert_eq!(stream.into_stream()?.get_ref(), &b"foo");
+
+            Ok(())
+        })
+    }
+
+    //
+    //
+    //
+    struct SimpleUpgraderWithoutIntoStream {}
+
+    #[async_trait]
+    impl<S> Upgrader<S> for SimpleUpgraderWithoutIntoStream
+    where
+        S: Send + 'static,
+    {
+        type Output = S;
+        async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
+            Ok(stream)
+        }
+    }
+
+    #[test]
+    fn try_into_stream() -> io::Result<()> {
+        block_on(async {
+            let cursor = Cursor::new(b"foo");
+            let stream = UpgradableAsyncStream::new(cursor, SimpleUpgrader {});
+
+            assert_eq!(stream.try_into_stream()?.get_ref(), &b"foo");
+
+            //
+            let cursor = Cursor::new(b"foo");
+            let stream = UpgradableAsyncStream::with_upgraded_stream(cursor);
+
+            let err = stream.try_into_stream().err().unwrap();
+            assert_eq!(err.kind(), io::ErrorKind::Other);
+            assert_eq!(err.to_string(), "unimplemented");
 
             Ok(())
         })

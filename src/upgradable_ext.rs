@@ -46,27 +46,43 @@ where
 //
 //
 //
-pub trait UpgraderExtTryIntoS<S>: Upgrader<S> {
-    fn try_into_s(output: Self::Output) -> io::Result<S>;
+pub trait UpgraderExtIntoStream<S>: Upgrader<S> {
+    fn into_stream(output: Self::Output) -> io::Result<S>;
 }
 
-impl<S> UpgraderExtTryIntoS<S> for ()
+impl<S> UpgraderExtIntoStream<S> for ()
 where
     S: Send + 'static,
 {
-    fn try_into_s(output: <Self as Upgrader<S>>::Output) -> io::Result<S> {
+    fn into_stream(output: <Self as Upgrader<S>>::Output) -> io::Result<S> {
         Ok(output)
     }
 }
 
 impl<S, SU> UpgradableAsyncStream<S, SU>
 where
-    SU: UpgraderExtTryIntoS<S>,
+    SU: UpgraderExtIntoStream<S>,
 {
-    pub fn try_into_s(self) -> io::Result<S> {
+    pub fn into_stream(self) -> io::Result<S> {
         match self.inner {
             Inner::Pending(s, _) => Ok(s),
-            Inner::Upgraded(s, _) => SU::try_into_s(s),
+            Inner::Upgraded(s, _) => SU::into_stream(s),
+            Inner::None => panic!("never"),
+        }
+    }
+}
+
+//
+//
+//
+impl<S, SU> UpgradableAsyncStream<S, SU>
+where
+    SU: Upgrader<S>,
+{
+    pub fn try_into_stream(self) -> io::Result<S> {
+        match self.inner {
+            Inner::Pending(s, _) => Ok(s),
+            Inner::Upgraded(_, _) => Err(io::Error::new(io::ErrorKind::Other, "unimplemented")),
             Inner::None => panic!("never"),
         }
     }
