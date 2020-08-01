@@ -37,6 +37,12 @@ pub mod tls;
 #[cfg(feature = "tls")]
 pub use tls::{TlsClientUpgrader, TlsServerUpgrader};
 
+#[cfg(feature = "http")]
+pub mod http;
+
+#[cfg(feature = "http")]
+pub use http::HttpClientInnerStream;
+
 #[cfg(feature = "mail")]
 pub mod mail;
 

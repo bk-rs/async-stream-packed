@@ -87,3 +87,16 @@ where
         }
     }
 }
+
+impl<S, SU> UpgradableAsyncStream<S, SU>
+where
+    SU: Upgrader<S>,
+{
+    pub fn try_into_upgraded_stream(self) -> io::Result<SU::Output> {
+        match self.inner {
+            Inner::Pending(_, _) => Err(io::Error::new(io::ErrorKind::Other, "unimplemented")),
+            Inner::Upgraded(s, _) => Ok(s),
+            Inner::None => panic!("never"),
+        }
+    }
+}
