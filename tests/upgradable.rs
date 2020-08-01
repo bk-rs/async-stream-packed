@@ -43,7 +43,7 @@ mod upgradable_tests {
     fn with_upgraded_stream() -> io::Result<()> {
         block_on(async {
             let cursor = Cursor::new(Vec::<u8>::new());
-            let stream = UpgradableAsyncStream::<_, SimpleUpgrader>::with_upgraded_stream(cursor);
+            let stream = UpgradableAsyncStream::with_upgraded_stream(cursor);
             assert_eq!(stream.is_upgraded(), true);
             assert_eq!(stream.upgrade_required(), false);
 
@@ -83,10 +83,7 @@ mod upgradable_tests {
 
             //
             let cursor = Cursor::new(Vec::<u8>::new());
-            let mut stream =
-                UpgradableAsyncStream::<_, SimpleUpgraderWithCannotUpgrade>::with_upgraded_stream(
-                    cursor,
-                );
+            let mut stream = UpgradableAsyncStream::with_upgraded_stream(cursor);
             assert_eq!(stream.is_upgraded(), true);
             assert_eq!(stream.upgrade_required(), false);
             let err = stream.upgrade().await.err().unwrap();

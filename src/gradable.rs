@@ -15,6 +15,19 @@ pub trait Downgrader<S>: Upgrader<S> {
     }
 }
 
+#[async_trait]
+impl<S> Downgrader<S> for ()
+where
+    S: Send + 'static,
+{
+    async fn downgrade(&mut self, _: <Self as Upgrader<S>>::Output) -> io::Result<S> {
+        unreachable!()
+    }
+    fn downgrade_required(&self) -> bool {
+        false
+    }
+}
+
 impl<S, SU> GradableAsyncStream<S, SU>
 where
     SU: Upgrader<S> + Downgrader<S>,
@@ -22,13 +35,7 @@ where
     pub fn downgrade_required(&self) -> bool {
         match &self.inner {
             Inner::Pending(_, _) => false,
-            Inner::Upgraded(_, grader) => {
-                if let Some(grader) = grader {
-                    grader.downgrade_required()
-                } else {
-                    false
-                }
-            }
+            Inner::Upgraded(_, grader) => grader.downgrade_required(),
             Inner::None => panic!("never"),
         }
     }
@@ -36,9 +43,7 @@ where
     pub async fn downgrade(&mut self) -> io::Result<()> {
         match mem::replace(&mut self.inner, Inner::None) {
             Inner::Pending(_, _) => Err(io::Error::new(io::ErrorKind::Other, "not allow")),
-            Inner::Upgraded(stream, grader) => {
-                let mut grader =
-                    grader.ok_or(io::Error::new(io::ErrorKind::Other, "missing grader"))?;
+            Inner::Upgraded(stream, mut grader) => {
                 if !grader.downgrade_required() {
                     return Err(io::Error::new(
                         io::ErrorKind::Other,

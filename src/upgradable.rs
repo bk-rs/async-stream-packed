@@ -18,7 +18,7 @@ where
     SU: Upgrader<S>,
 {
     Pending(S, SU),
-    Upgraded(SU::Output, Option<SU>),
+    Upgraded(SU::Output, SU),
     None,
 }
 
@@ -28,6 +28,20 @@ pub trait Upgrader<S> {
     async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output>;
     fn upgrade_required(&self) -> bool {
         true
+    }
+}
+
+#[async_trait]
+impl<S> Upgrader<S> for ()
+where
+    S: Send + 'static,
+{
+    type Output = S;
+    async fn upgrade(&mut self, _: S) -> io::Result<Self::Output> {
+        unreachable!()
+    }
+    fn upgrade_required(&self) -> bool {
+        false
     }
 }
 
@@ -41,15 +55,9 @@ where
         }
     }
 
-    pub fn with_upgraded_stream(stream: SU::Output) -> Self {
-        Self {
-            inner: Inner::Upgraded(stream, None),
-        }
-    }
-
     pub fn with_upgraded_stream_and_grader(stream: SU::Output, grader: SU) -> Self {
         Self {
-            inner: Inner::Upgraded(stream, Some(grader)),
+            inner: Inner::Upgraded(stream, grader),
         }
     }
 
@@ -75,11 +83,22 @@ where
                     return Err(io::Error::new(io::ErrorKind::Other, "upgrade not required"));
                 }
                 let stream = upgrader.upgrade(stream).await?;
-                self.inner = Inner::Upgraded(stream, Some(upgrader));
+                self.inner = Inner::Upgraded(stream, upgrader);
                 Ok(())
             }
             Inner::Upgraded(_, _) => Err(io::Error::new(io::ErrorKind::Other, "not allow")),
             Inner::None => panic!("never"),
+        }
+    }
+}
+
+impl<S> UpgradableAsyncStream<S, ()>
+where
+    S: Send + 'static,
+{
+    pub fn with_upgraded_stream(stream: S) -> Self {
+        Self {
+            inner: Inner::Upgraded(stream, ()),
         }
     }
 }

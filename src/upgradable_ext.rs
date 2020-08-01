@@ -10,6 +10,18 @@ pub trait UpgraderExtRefer<S>: Upgrader<S> {
     fn get_mut(output: &mut Self::Output) -> &mut S;
 }
 
+impl<S> UpgraderExtRefer<S> for ()
+where
+    S: Send + 'static,
+{
+    fn get_ref(output: &<Self as Upgrader<S>>::Output) -> &S {
+        output
+    }
+    fn get_mut(output: &mut <Self as Upgrader<S>>::Output) -> &mut S {
+        output
+    }
+}
+
 impl<S, SU> UpgradableAsyncStream<S, SU>
 where
     SU: UpgraderExtRefer<S>,
@@ -36,6 +48,15 @@ where
 //
 pub trait UpgraderExtTryIntoS<S>: Upgrader<S> {
     fn try_into_s(output: Self::Output) -> io::Result<S>;
+}
+
+impl<S> UpgraderExtTryIntoS<S> for ()
+where
+    S: Send + 'static,
+{
+    fn try_into_s(output: <Self as Upgrader<S>>::Output) -> io::Result<S> {
+        Ok(output)
+    }
 }
 
 impl<S, SU> UpgradableAsyncStream<S, SU>

@@ -57,6 +57,13 @@ mod upgradable_ext_tests {
             assert_eq!(stream.get_ref().get_ref(), &b"foo");
             assert_eq!(stream.get_mut().get_mut(), &mut b"foo");
 
+            //
+            let cursor = Cursor::new(b"foo");
+            let mut stream = UpgradableAsyncStream::with_upgraded_stream(cursor);
+
+            assert_eq!(stream.get_ref().get_ref(), &b"foo");
+            assert_eq!(stream.get_mut().get_mut(), &mut b"foo");
+
             Ok(())
         })
     }
@@ -69,8 +76,9 @@ mod upgradable_ext_tests {
 
             assert_eq!(stream.try_into_s()?.get_ref(), &b"foo");
 
+            //
             let cursor = Cursor::new(b"foo");
-            let stream = UpgradableAsyncStream::<_, SimpleUpgrader>::with_upgraded_stream(cursor);
+            let stream = UpgradableAsyncStream::with_upgraded_stream(cursor);
 
             assert_eq!(stream.try_into_s()?.get_ref(), &b"foo");
 

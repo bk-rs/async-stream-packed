@@ -121,15 +121,12 @@ mod gradable_tests {
 
             //
             let cursor = Cursor::new(Vec::<u8>::new());
-            let mut stream =
-                GradableAsyncStream::<_, SimpleGraderWithCannotDowngrade>::with_upgraded_stream(
-                    cursor,
-                );
+            let mut stream = GradableAsyncStream::with_upgraded_stream(cursor);
             assert_eq!(stream.is_upgraded(), true);
             assert_eq!(stream.downgrade_required(), false);
             let err = stream.downgrade().await.err().unwrap();
             assert_eq!(err.kind(), io::ErrorKind::Other);
-            assert_eq!(err.to_string(), "missing grader");
+            assert_eq!(err.to_string(), "downgrade not required");
 
             //
             let cursor = Cursor::new(Vec::<u8>::new());
