@@ -96,6 +96,12 @@ impl<S> UpgradableAsyncStream<S, ()>
 where
     S: Send + 'static,
 {
+    pub fn with_stream(stream: S) -> Self {
+        Self {
+            inner: Inner::Pending(stream, ()),
+        }
+    }
+
     pub fn with_upgraded_stream(stream: S) -> Self {
         Self {
             inner: Inner::Upgraded(stream, ()),

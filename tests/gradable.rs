@@ -79,10 +79,10 @@ mod gradable_tests {
     //
     //
     //
-    struct SimpleGraderWithCannotDowngrade {}
+    struct SimpleGraderWithNotDowngradeRequired {}
 
     #[async_trait]
-    impl<S> Upgrader<S> for SimpleGraderWithCannotDowngrade
+    impl<S> Upgrader<S> for SimpleGraderWithNotDowngradeRequired
     where
         S: Send + 'static,
     {
@@ -93,15 +93,15 @@ mod gradable_tests {
     }
 
     #[async_trait]
-    impl<S> Downgrader<S> for SimpleGraderWithCannotDowngrade
+    impl<S> Downgrader<S> for SimpleGraderWithNotDowngradeRequired
     where
         S: Send + 'static,
     {
         async fn downgrade(
             &mut self,
-            output: <SimpleGrader as Upgrader<S>>::Output,
+            _output: <SimpleGrader as Upgrader<S>>::Output,
         ) -> io::Result<S> {
-            Ok(output)
+            unreachable!()
         }
         fn downgrade_required(&self) -> bool {
             false
@@ -112,7 +112,8 @@ mod gradable_tests {
     fn downgrade_required() -> io::Result<()> {
         block_on(async {
             let cursor = Cursor::new(Vec::<u8>::new());
-            let mut stream = GradableAsyncStream::new(cursor, SimpleGraderWithCannotDowngrade {});
+            let mut stream =
+                GradableAsyncStream::new(cursor, SimpleGraderWithNotDowngradeRequired {});
             assert_eq!(stream.is_upgraded(), false);
             assert_eq!(stream.downgrade_required(), false);
             let err = stream.downgrade().await.err().unwrap();
@@ -132,13 +133,91 @@ mod gradable_tests {
             let cursor = Cursor::new(Vec::<u8>::new());
             let mut stream = GradableAsyncStream::with_upgraded_stream_and_grader(
                 cursor,
-                SimpleGraderWithCannotDowngrade {},
+                SimpleGraderWithNotDowngradeRequired {},
             );
             assert_eq!(stream.is_upgraded(), true);
             assert_eq!(stream.downgrade_required(), false);
             let err = stream.downgrade().await.err().unwrap();
             assert_eq!(err.kind(), io::ErrorKind::Other);
             assert_eq!(err.to_string(), "downgrade not required");
+
+            Ok(())
+        })
+    }
+
+    //
+    //
+    //
+    #[derive(Default)]
+    struct SimpleGraderWithOnceUpgradeAndOnceDowngrade {
+        upgrade_count: usize,
+        downgrade_count: usize,
+    }
+
+    #[async_trait]
+    impl<S> Upgrader<S> for SimpleGraderWithOnceUpgradeAndOnceDowngrade
+    where
+        S: Send + 'static,
+    {
+        type Output = S;
+        async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
+            match self.upgrade_count {
+                0 => {
+                    self.upgrade_count += 1;
+                    Ok(stream)
+                }
+                _ => unreachable!(),
+            }
+        }
+        fn upgrade_required(&self) -> bool {
+            match self.upgrade_count {
+                0 => true,
+                _ => false,
+            }
+        }
+    }
+
+    #[async_trait]
+    impl<S> Downgrader<S> for SimpleGraderWithOnceUpgradeAndOnceDowngrade
+    where
+        S: Send + 'static,
+    {
+        async fn downgrade(
+            &mut self,
+            output: <SimpleGrader as Upgrader<S>>::Output,
+        ) -> io::Result<S> {
+            match self.downgrade_count {
+                0 => {
+                    self.downgrade_count += 1;
+                    Ok(output)
+                }
+                _ => unreachable!(),
+            }
+        }
+        fn downgrade_required(&self) -> bool {
+            match self.downgrade_count {
+                0 => true,
+                _ => false,
+            }
+        }
+    }
+
+    #[test]
+    fn once_upgrade_and_once_downgrade() -> io::Result<()> {
+        block_on(async {
+            let grader = SimpleGraderWithOnceUpgradeAndOnceDowngrade::default();
+            assert_eq!(grader.upgrade_count, 0);
+            assert_eq!(grader.downgrade_count, 0);
+
+            let cursor = Cursor::new(Vec::<u8>::new());
+            let mut stream = GradableAsyncStream::new(cursor, grader);
+
+            assert_eq!(stream.is_upgraded(), false);
+            stream.upgrade().await?;
+            assert_eq!(stream.is_upgraded(), true);
+            stream.downgrade().await?;
+            assert_eq!(stream.is_upgraded(), false);
+            assert_eq!(stream.upgrade_required(), false);
 
             Ok(())
         })
