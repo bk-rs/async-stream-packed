@@ -8,23 +8,46 @@ use crate::upgradable::{Inner, UpgradableAsyncStream, Upgrader};
 pub type GradableAsyncStream<S, SU> = UpgradableAsyncStream<S, SU>;
 
 #[async_trait]
-pub trait Downgrader<S, SU>: Upgrader<S> {
-    async fn downgrade(output: Self::Output, upgrader: Option<SU>) -> io::Result<(S, Option<SU>)>;
+pub trait Downgrader<S>: Upgrader<S> {
+    async fn downgrade(&mut self, output: Self::Output) -> io::Result<S>;
+    fn downgrade_required(&self) -> bool {
+        true
+    }
 }
 
 impl<S, SU> GradableAsyncStream<S, SU>
 where
-    SU: Upgrader<S> + Downgrader<S, SU>,
+    SU: Upgrader<S> + Downgrader<S>,
 {
+    pub fn downgrade_required(&self) -> bool {
+        match &self.inner {
+            Inner::Pending(_, _) => false,
+            Inner::Upgraded(_, grader) => {
+                if let Some(grader) = grader {
+                    grader.downgrade_required()
+                } else {
+                    false
+                }
+            }
+            Inner::None => panic!("never"),
+        }
+    }
+
     pub async fn downgrade(&mut self) -> io::Result<()> {
         match mem::replace(&mut self.inner, Inner::None) {
-            Inner::Pending((_, _)) => Err(io::Error::new(
-                io::ErrorKind::Other,
-                "do upgrade first or don't downgrade agent",
-            )),
-            Inner::Upgraded((stream, upgrader)) => {
-                let (stream, upgrader) = SU::downgrade(stream, upgrader).await?;
-                self.inner = Inner::Pending((stream, upgrader));
+            Inner::Pending(_, _) => Err(io::Error::new(io::ErrorKind::Other, "not allow")),
+            Inner::Upgraded(stream, grader) => {
+                let mut grader =
+                    grader.ok_or(io::Error::new(io::ErrorKind::Other, "missing grader"))?;
+                if !grader.downgrade_required() {
+                    return Err(io::Error::new(
+                        io::ErrorKind::Other,
+                        "downgrade not required",
+                    ));
+                }
+
+                let stream = grader.downgrade(stream).await?;
+                self.inner = Inner::Pending(stream, grader);
                 Ok(())
             }
             Inner::None => panic!("never"),

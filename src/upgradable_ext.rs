@@ -16,16 +16,16 @@ where
 {
     pub fn get_ref(&self) -> &S {
         match &self.inner {
-            Inner::Pending((s, _)) => &s,
-            Inner::Upgraded((s, _)) => SU::get_ref(s),
+            Inner::Pending(s, _) => &s,
+            Inner::Upgraded(s, _) => SU::get_ref(s),
             Inner::None => panic!("never"),
         }
     }
 
     pub fn get_mut(&mut self) -> &mut S {
         match &mut self.inner {
-            Inner::Pending((s, _)) => s,
-            Inner::Upgraded((s, _)) => SU::get_mut(s),
+            Inner::Pending(s, _) => s,
+            Inner::Upgraded(s, _) => SU::get_mut(s),
             Inner::None => panic!("never"),
         }
     }
@@ -44,8 +44,8 @@ where
 {
     pub fn try_into_s(self) -> io::Result<S> {
         match self.inner {
-            Inner::Pending((s, _)) => Ok(s),
-            Inner::Upgraded((s, _)) => SU::try_into_s(s),
+            Inner::Pending(s, _) => Ok(s),
+            Inner::Upgraded(s, _) => SU::try_into_s(s),
             Inner::None => panic!("never"),
         }
     }
