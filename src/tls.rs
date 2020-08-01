@@ -1,15 +1,9 @@
-#[cfg(feature = "upgradable")]
-mod upgradable_ {
-    use crate::upgradable::Upgrader;
+use crate::upgradable::Upgrader;
 
-    pub trait TlsClientUpgrader<S>: Upgrader<S> {}
+pub trait TlsClientUpgrader<S>: Upgrader<S> {}
 
-    impl<S> TlsClientUpgrader<S> for () where S: Send + 'static {}
+impl<S> TlsClientUpgrader<S> for () where S: Send + 'static {}
 
-    pub trait TlsServerUpgrader<S>: Upgrader<S> {}
+pub trait TlsServerUpgrader<S>: Upgrader<S> {}
 
-    impl<S> TlsServerUpgrader<S> for () where S: Send + 'static {}
-}
-
-#[cfg(feature = "upgradable")]
-pub use upgradable_::*;
+impl<S> TlsServerUpgrader<S> for () where S: Send + 'static {}

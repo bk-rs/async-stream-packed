@@ -19,7 +19,7 @@ unionable = ["either"]
 upgradable = ["async-trait"]
 upgradable_ext = ["upgradable"]
 gradable = ["upgradable"]
-tls = []
+tls = ["upgradable"]
 
 [dependencies]
 futures-io = { version = "0.3", default-features = false, features = ["std"] }

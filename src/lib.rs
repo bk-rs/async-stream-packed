@@ -34,5 +34,5 @@ pub use gradable::{Downgrader, GradableAsyncStream};
 #[cfg(feature = "tls")]
 pub mod tls;
 
-#[cfg(all(feature = "tls", feature = "upgradable"))]
+#[cfg(feature = "tls")]
 pub use tls::{TlsClientUpgrader, TlsServerUpgrader};
