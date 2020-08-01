@@ -1,4 +1,4 @@
-#[cfg(feature = "gradable")]
+#[cfg(feature = "upgradable")]
 mod gradable_tests {
     use std::io;
 

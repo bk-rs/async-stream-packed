@@ -1,4 +1,4 @@
-#[cfg(feature = "upgradable_ext")]
+#[cfg(feature = "upgradable")]
 mod upgradable_ext_tests {
     use std::io;
 

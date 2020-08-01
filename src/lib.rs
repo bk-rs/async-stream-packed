@@ -18,14 +18,14 @@ pub mod upgradable;
 #[cfg(feature = "upgradable")]
 pub use upgradable::{UpgradableAsyncStream, Upgrader};
 
-#[cfg(feature = "upgradable_ext")]
+#[cfg(feature = "upgradable")]
 pub mod upgradable_ext;
-#[cfg(feature = "upgradable_ext")]
+#[cfg(feature = "upgradable")]
 pub use upgradable_ext::{UpgraderExtIntoStream, UpgraderExtRefer};
 
-#[cfg(feature = "gradable")]
+#[cfg(feature = "upgradable")]
 pub mod gradable;
-#[cfg(feature = "gradable")]
+#[cfg(feature = "upgradable")]
 pub use gradable::{Downgrader, GradableAsyncStream};
 
 //

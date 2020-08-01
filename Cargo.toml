@@ -17,8 +17,6 @@ syncable_with_context = []
 syncable_with_waker = ["futures-util"]
 unionable = ["either"]
 upgradable = ["async-trait"]
-upgradable_ext = ["upgradable"]
-gradable = ["upgradable"]
 tls = ["upgradable"]
 
 [dependencies]
