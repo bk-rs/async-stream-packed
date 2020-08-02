@@ -32,6 +32,12 @@ impl<S, SU> GradableAsyncStream<S, SU>
 where
     SU: Upgrader<S> + Downgrader<S>,
 {
+    pub fn with_upgraded_stream_and_grader(stream: SU::Output, grader: SU) -> Self {
+        Self {
+            inner: Inner::Upgraded(stream, grader),
+        }
+    }
+
     pub fn downgrade_required(&self) -> bool {
         match &self.inner {
             Inner::Pending(_, _) => false,

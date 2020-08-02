@@ -13,8 +13,8 @@ impl<S, SU> ImapClientInnerStream<S, SU>
 where
     SU: TlsClientUpgrader<S>,
 {
-    pub fn with_imap_tcp_stream_and_tls_upgrader(tcp_stream: S, tls_upgrader: SU) -> Self {
-        Self::new(tcp_stream, tls_upgrader)
+    pub fn with_imap_client(stream: S, tls_upgrader: SU) -> Self {
+        Self::new(stream, tls_upgrader)
     }
 }
 
@@ -30,7 +30,7 @@ impl<S, SU> SmtpClientInnerStream<S, SU>
 where
     SU: TlsClientUpgrader<S>,
 {
-    pub fn with_smtp_tcp_stream_and_tls_upgrader(tcp_stream: S, tls_upgrader: SU) -> Self {
-        Self::new(tcp_stream, tls_upgrader)
+    pub fn with_smtp_client(stream: S, tls_upgrader: SU) -> Self {
+        Self::new(stream, tls_upgrader)
     }
 }

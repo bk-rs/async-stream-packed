@@ -55,9 +55,9 @@ where
         }
     }
 
-    pub fn with_upgraded_stream_and_grader(stream: SU::Output, grader: SU) -> Self {
+    pub fn with_upgraded_stream_and_upgrader(stream: SU::Output, upgrader: SU) -> Self {
         Self {
-            inner: Inner::Upgraded(stream, grader),
+            inner: Inner::Upgraded(stream, upgrader),
         }
     }
 
