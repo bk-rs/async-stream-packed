@@ -14,8 +14,8 @@ readme = "README.md"
 
 [features]
 syncable_with_context = []
-syncable_with_waker = ["futures-util"]
-unionable = ["futures-util"]
+syncable_with_waker = ["futures-util/alloc"]
+unionable = ["futures-util/io"]
 upgradable = ["async-trait"]
 tls = ["upgradable"]
 http = ["upgradable", "tls"]
@@ -23,7 +23,7 @@ mail = ["upgradable", "tls"]
 
 [dependencies]
 futures-io = { version = "0.3", default-features = false, features = ["std"] }
-futures-util = { version = "0.3", default-features = false, features = ["alloc"], optional = true }
+futures-util = { version = "0.3", default-features = false, features = [], optional = true }
 async-trait = { version = "0.1", default-features = false, features = [], optional = true }
 
 [dev-dependencies]

@@ -24,3 +24,7 @@ cargo fmt --all -- --check
 cargo build-all-features
 cargo test-all-features --all
 ```
+
+```
+cargo tarpaulin --all-features
+```

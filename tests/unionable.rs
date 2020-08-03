@@ -7,7 +7,7 @@ mod unionable_tests {
     use futures_io::{AsyncRead, AsyncWrite};
     use futures_lite::future::block_on;
     use futures_lite::io::{empty, Cursor, Empty};
-    use futures_lite::{AsyncReadExt, AsyncWriteExt};
+    use futures_lite::io::{AsyncReadExt, AsyncWriteExt};
 
     use async_stream_packed::UnionableAsyncStream;
 
