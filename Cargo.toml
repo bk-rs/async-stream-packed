@@ -29,6 +29,7 @@ async-trait = { version = "0.1", default-features = false, features = [], option
 
 [dev-dependencies]
 futures-lite = { version = "0.1", default-features = false, features = [] }
+async-channel = { version = "1.4", default-features = false, features = [] }
 
 [workspace]
 members = [

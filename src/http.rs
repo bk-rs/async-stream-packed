@@ -15,153 +15,313 @@ impl<S> HttpTunnelGrader<S> for () where S: Send + 'static {}
 //
 //
 //
-/*
-Cases:
-
-1. curl http://httpbin.org/ip -v
-
-2. curl https://httpbin.org/ip -v
-
-3. curl -x http://127.0.0.1:8118 http://httpbin.org/ip -v
-
-4. curl -x http://127.0.0.1:8118 https://httpbin.org/ip -v
-
-5. curl -x https://proxy.lvh.me:9118 http://httpbin.org/ip -v
-
-6. curl -x https://proxy.lvh.me:9118 https://httpbin.org/ip -v --proxy-insecure
-
-7. curl -x socks5://127.0.0.1:1080 http://httpbin.org/ip -v
-
-8. curl -x socks5://127.0.0.1:1080 https://httpbin.org/ip -v
-
-*/
-
-pub struct HttpClientInnerStream<S> {
-    inner: S,
-}
-impl<S> HttpClientInnerStream<S> {
-    pub(crate) fn new(inner: S) -> Self {
-        Self { inner }
-    }
-}
-
-impl<S> HttpClientInnerStream<S>
+pub enum HttpClientInnerStream<S, HTTU, HTG, TU>
 where
-    S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
+    S: AsyncRead + AsyncWrite + Unpin,
+    HTTU: TlsClientUpgrader<S> + Unpin,
+    HTTU::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<S> + Unpin,
+    <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
+    TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
+    <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    <TU as Upgrader<<HTTU as Upgrader<S>>::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
 {
-    // Resolve cases: 1, 3
-    pub fn tcp(stream: S) -> HttpClientInnerStream<S> {
-        HttpClientInnerStream::new(stream)
+    // curl http://httpbin.org/ip -v
+    Case1(S),
+
+    // curl https://httpbin.org/ip -v
+    Case2(<TU as Upgrader<S>>::Output),
+
+    // curl -x http://127.0.0.1:8118 http://httpbin.org/ip -v
+    Case3(S),
+
+    // curl -x http://127.0.0.1:8118 https://httpbin.org/ip -v
+    Case4(<TU as Upgrader<S>>::Output),
+
+    // curl -x https://proxy.lvh.me:9118 http://httpbin.org/ip -v
+    Case5(<HTTU as Upgrader<S>>::Output),
+
+    // curl -x https://proxy.lvh.me:9118 https://httpbin.org/ip -v --proxy-insecure
+    Case6(<TU as Upgrader<<HTTU as Upgrader<S>>::Output>>::Output),
+
+    // curl -x socks5://127.0.0.1:1080 http://httpbin.org/ip -v
+    Case7,
+
+    // curl -x socks5://127.0.0.1:1080 https://httpbin.org/ip -v
+    Case8,
+
+    Never(HTG),
+}
+
+impl<S, HTTU, HTG, TU> HttpClientInnerStream<S, HTTU, HTG, TU>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+    HTTU: TlsClientUpgrader<S> + Unpin,
+    HTTU::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<S> + Unpin,
+    <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
+    TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
+    <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    <TU as Upgrader<<HTTU as Upgrader<S>>::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
+{
+    pub fn is_case1(&self) -> bool {
+        match self {
+            HttpClientInnerStream::Case1(_) => true,
+            _ => false,
+        }
     }
 
-    // Resolve cases: 2, 5
-    pub async fn tcp_then_tls<TU>(
-        stream: S,
-        tls_upgrader: TU,
-    ) -> io::Result<HttpClientInnerStream<UpgradableAsyncStream<S, TU>>>
-    where
-        TU: TlsClientUpgrader<S>,
-    {
-        let mut stream = UpgradableAsyncStream::new(stream, tls_upgrader);
-        stream.upgrade().await?;
-
-        Ok(HttpClientInnerStream::new(stream))
+    pub fn is_case2(&self) -> bool {
+        match self {
+            HttpClientInnerStream::Case2(_) => true,
+            _ => false,
+        }
     }
 
-    // Resolve cases: 4
-    pub async fn tcp_then_http_tunnel_then_tls<HTG, TU>(
-        stream: S,
-        mut http_tunnel_grader: HTG,
-        tls_upgrader: TU,
-    ) -> io::Result<HttpClientInnerStream<UpgradableAsyncStream<S, TU>>>
-    where
-        HTG: HttpTunnelGrader<S>,
-        TU: TlsClientUpgrader<S>,
-    {
-        let http_tunnel_stream = http_tunnel_grader.upgrade(stream).await?;
-        let stream = http_tunnel_grader.downgrade(http_tunnel_stream).await?;
-
-        let mut stream = UpgradableAsyncStream::new(stream, tls_upgrader);
-        stream.upgrade().await?;
-
-        Ok(HttpClientInnerStream::new(stream))
+    pub fn is_case3(&self) -> bool {
+        match self {
+            HttpClientInnerStream::Case3(_) => true,
+            _ => false,
+        }
     }
 
-    // Resolve cases: 6
-    pub async fn tcp_then_tls_then_http_tunnel_then_tls<HTTU, HTG, TU>(
-        stream: S,
-        http_tunnel_tls_upgrader: HTTU,
-        mut http_tunnel_grader: HTG,
-        tls_upgrader: TU,
-    ) -> io::Result<HttpClientInnerStream<UpgradableAsyncStream<HTTU::Output, TU>>>
-    where
-        HTTU: TlsClientUpgrader<S>,
-        HTG: HttpTunnelGrader<UpgradableAsyncStream<S, HTTU>>,
-        TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S>,
-    {
-        let mut stream = UpgradableAsyncStream::new(stream, http_tunnel_tls_upgrader);
-        stream.upgrade().await?;
+    pub fn is_case4(&self) -> bool {
+        match self {
+            HttpClientInnerStream::Case4(_) => true,
+            _ => false,
+        }
+    }
 
-        let http_tunnel_stream = http_tunnel_grader.upgrade(stream).await?;
-        let stream = http_tunnel_grader.downgrade(http_tunnel_stream).await?;
+    pub fn is_case5(&self) -> bool {
+        match self {
+            HttpClientInnerStream::Case5(_) => true,
+            _ => false,
+        }
+    }
 
-        let stream = stream.try_into_upgraded_stream()?;
-
-        let mut stream = UpgradableAsyncStream::new(stream, tls_upgrader);
-        stream.upgrade().await?;
-
-        Ok(HttpClientInnerStream::new(stream))
+    pub fn is_case6(&self) -> bool {
+        match self {
+            HttpClientInnerStream::Case6(_) => true,
+            _ => false,
+        }
     }
 }
 
-impl<S> AsyncWrite for HttpClientInnerStream<S>
+impl<S, HTTU, HTG, TU> HttpClientInnerStream<S, HTTU, HTG, TU>
 where
-    S: AsyncWrite + Unpin,
+    S: AsyncRead + AsyncWrite + Unpin,
+    HTTU: TlsClientUpgrader<S> + Unpin,
+    HTTU::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<S> + Unpin,
+    <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
+    TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
+    <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    <TU as Upgrader<<HTTU as Upgrader<S>>::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
+{
+    pub async fn new(
+        stream: S,
+        proxy: Option<HttpClientProxy<S, HTTU, HTG>>,
+        tls_upgrader: Option<TU>,
+    ) -> io::Result<Self> {
+        if let Some(proxy) = proxy {
+            match proxy.inner {
+                HttpClientProxyInner::Http(http_tunnel_grader) => {
+                    let mut stream = UpgradableAsyncStream::new(stream, http_tunnel_grader);
+                    stream.upgrade().await?;
+                    stream.downgrade().await?;
+                    let stream = stream.try_into_stream()?;
+
+                    if let Some(tls_upgrader) = tls_upgrader {
+                        let mut stream = UpgradableAsyncStream::new(stream, tls_upgrader);
+                        stream.upgrade().await?;
+                        let stream = stream.try_into_upgraded_stream()?;
+                        return Ok(Self::Case4(stream));
+                    }
+                    return Ok(Self::Case3(stream));
+                }
+                HttpClientProxyInner::Https(http_tunnel_tls_upgrader, http_tunnel_grader) => {
+                    let mut stream = UpgradableAsyncStream::new(stream, http_tunnel_tls_upgrader);
+                    stream.upgrade().await?;
+                    let stream = stream.try_into_upgraded_stream()?;
+
+                    let mut stream = UpgradableAsyncStream::new(stream, http_tunnel_grader);
+                    stream.upgrade().await?;
+                    stream.downgrade().await?;
+                    let stream = stream.try_into_stream()?;
+
+                    if let Some(tls_upgrader) = tls_upgrader {
+                        let mut stream = UpgradableAsyncStream::new(stream, tls_upgrader);
+                        stream.upgrade().await?;
+                        let stream = stream.try_into_upgraded_stream()?;
+                        return Ok(Self::Case6(stream));
+                    }
+                    return Ok(Self::Case5(stream));
+                }
+                HttpClientProxyInner::Never(_) => panic!("never"),
+            }
+        }
+
+        if let Some(tls_upgrader) = tls_upgrader {
+            let mut stream = UpgradableAsyncStream::new(stream, tls_upgrader);
+            stream.upgrade().await?;
+            let stream = stream.try_into_upgraded_stream()?;
+
+            return Ok(Self::Case2(stream));
+        }
+
+        return Ok(Self::Case1(stream));
+    }
+}
+
+//
+//
+//
+macro_rules! case {
+    ($value:expr, $pattern:pat => $result:expr) => {
+        match $value {
+            HttpClientInnerStream::Case1($pattern) => $result,
+            HttpClientInnerStream::Case2($pattern) => $result,
+            HttpClientInnerStream::Case3($pattern) => $result,
+            HttpClientInnerStream::Case4($pattern) => $result,
+            HttpClientInnerStream::Case5($pattern) => $result,
+            HttpClientInnerStream::Case6($pattern) => $result,
+            HttpClientInnerStream::Case7 => unreachable!(),
+            HttpClientInnerStream::Case8 => unreachable!(),
+            HttpClientInnerStream::Never(_) => panic!("never"),
+        }
+    };
+}
+
+impl<S, HTTU, HTG, TU> AsyncWrite for HttpClientInnerStream<S, HTTU, HTG, TU>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+    HTTU: TlsClientUpgrader<S> + Unpin,
+    HTTU::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<S> + Unpin,
+    <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
+    TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
+    <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    <TU as Upgrader<<HTTU as Upgrader<S>>::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
 {
     fn poll_write(self: Pin<&mut Self>, cx: &mut Context, buf: &[u8]) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.get_mut().inner).poll_write(cx, buf)
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_write(cx, buf))
     }
 
     fn poll_flush(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
-        Pin::new(&mut self.get_mut().inner).poll_flush(cx)
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_flush(cx))
     }
 
     fn poll_close(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
-        Pin::new(&mut self.get_mut().inner).poll_close(cx)
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_close(cx))
     }
 }
 
-impl<S> AsyncRead for HttpClientInnerStream<S>
+impl<S, HTTU, HTG, TU> AsyncRead for HttpClientInnerStream<S, HTTU, HTG, TU>
 where
-    S: AsyncRead + Unpin,
+    S: AsyncRead + AsyncWrite + Unpin,
+    HTTU: TlsClientUpgrader<S> + Unpin,
+    HTTU::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<S> + Unpin,
+    <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
+    TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
+    <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
+    <TU as Upgrader<<HTTU as Upgrader<S>>::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
 {
     fn poll_read(
         self: Pin<&mut Self>,
         cx: &mut Context,
         buf: &mut [u8],
     ) -> Poll<io::Result<usize>> {
-        Pin::new(&mut self.get_mut().inner).poll_read(cx, buf)
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_read(cx, buf))
     }
 }
 
-impl<S> AsyncSeek for HttpClientInnerStream<S>
+impl<S, HTTU, HTG, TU> AsyncSeek for HttpClientInnerStream<S, HTTU, HTG, TU>
 where
-    S: AsyncSeek + Unpin,
+    S: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
+    HTTU: TlsClientUpgrader<S> + Unpin,
+    HTTU::Output: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
+    HTG: HttpTunnelGrader<S> + Unpin,
+    <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
+    HTG: HttpTunnelGrader<HTTU::Output> + Unpin + AsyncSeek,
+    <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
+    TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
+    <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
+    <TU as Upgrader<<HTTU as Upgrader<S>>::Output>>::Output:
+        AsyncRead + AsyncWrite + Unpin + AsyncSeek,
 {
     fn poll_seek(self: Pin<&mut Self>, cx: &mut Context, pos: SeekFrom) -> Poll<io::Result<u64>> {
-        Pin::new(&mut self.get_mut().inner).poll_seek(cx, pos)
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_seek(cx, pos))
     }
 }
 
-impl<S> AsyncBufRead for HttpClientInnerStream<S>
+impl<S, HTTU, HTG, TU> AsyncBufRead for HttpClientInnerStream<S, HTTU, HTG, TU>
 where
-    S: AsyncBufRead + Unpin,
+    S: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
+    HTTU: TlsClientUpgrader<S> + Unpin,
+    HTTU::Output: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
+    HTG: HttpTunnelGrader<S> + Unpin,
+    <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
+    HTG: HttpTunnelGrader<HTTU::Output> + Unpin + AsyncBufRead,
+    <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
+    TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
+    <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
+    <TU as Upgrader<<HTTU as Upgrader<S>>::Output>>::Output:
+        AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
 {
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<&[u8]>> {
-        Pin::new(&mut self.get_mut().inner).poll_fill_buf(cx)
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_fill_buf(cx))
     }
 
     fn consume(self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.get_mut().inner).consume(amt)
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).consume(amt))
+    }
+}
+
+//
+//
+//
+pub struct HttpClientProxy<S, TU, HTG> {
+    inner: HttpClientProxyInner<S, TU, HTG>,
+}
+
+enum HttpClientProxyInner<S, TU, HTG> {
+    Http(HTG),
+    Https(TU, HTG),
+    // TODO, socks5
+    #[allow(dead_code)]
+    Never(S),
+}
+
+impl<S, TU, HTG> HttpClientProxy<S, TU, HTG>
+where
+    HTG: HttpTunnelGrader<S>,
+{
+    pub fn http(http_tunnel_grader: HTG) -> Self {
+        Self {
+            inner: HttpClientProxyInner::Http(http_tunnel_grader),
+        }
+    }
+}
+
+impl<S, TU, HTG> HttpClientProxy<S, TU, HTG>
+where
+    TU: TlsClientUpgrader<S>,
+    HTG: HttpTunnelGrader<TU::Output>,
+{
+    pub fn https(tls_upgrader: TU, http_tunnel_grader: HTG) -> Self {
+        Self {
+            inner: HttpClientProxyInner::Https(tls_upgrader, http_tunnel_grader),
+        }
     }
 }
