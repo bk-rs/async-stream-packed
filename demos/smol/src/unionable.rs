@@ -21,20 +21,20 @@ fn main() -> io::Result<()> {
 async fn run() -> io::Result<()> {
     let domain = env::args()
         .nth(1)
-        .unwrap_or_else(|| env::var("DOMAIN").unwrap_or("httpbin.org".to_owned()));
+        .unwrap_or_else(|| env::var("DOMAIN").unwrap_or_else(|_| "httpbin.org".to_owned()));
     let port: u16 = env::args()
         .nth(2)
-        .unwrap_or_else(|| env::var("PORT").unwrap_or("80".to_owned()))
+        .unwrap_or_else(|| env::var("PORT").unwrap_or_else(|_| "80".to_owned()))
         .parse()
         .unwrap();
     let is_tls: bool = env::args()
         .nth(3)
-        .unwrap_or_else(|| env::var("IS_TLS").unwrap_or("false".to_owned()))
+        .unwrap_or_else(|| env::var("IS_TLS").unwrap_or_else(|_| "false".to_owned()))
         .parse()
         .unwrap();
     let uri = env::args()
         .nth(4)
-        .unwrap_or_else(|| env::var("URI").unwrap_or("/".to_owned()));
+        .unwrap_or_else(|| env::var("URI").unwrap_or_else(|_| "/".to_owned()));
 
     println!("{} {} {} {}", domain, port, is_tls, uri);
 
