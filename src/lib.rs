@@ -28,6 +28,11 @@ pub mod gradable;
 #[cfg(feature = "upgradable")]
 pub use gradable::{Downgrader, GradableAsyncStream};
 
+#[cfg(feature = "timeoutable")]
+pub mod timeoutable;
+#[cfg(feature = "timeoutable")]
+pub use timeoutable::{AsyncReadWithTimeoutExt, AsyncWriteWithTimeoutExt};
+
 //
 //
 //
