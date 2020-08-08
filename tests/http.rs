@@ -12,8 +12,8 @@ mod http_tests {
     use futures_lite::{AsyncReadExt, AsyncWriteExt};
 
     use async_stream_packed::{
-        Downgrader, HttpClientInnerStream, HttpClientProxy, HttpTunnelGrader, TlsClientUpgrader,
-        Upgrader,
+        Downgrader, HttpClientInnerStream, HttpClientProxy, HttpTunnelClientGrader,
+        TlsClientUpgrader, Upgrader,
     };
 
     //
@@ -208,30 +208,30 @@ mod http_tests {
         }
     }
 
-    struct SimpleHttpTunnelGrader {
+    struct SimpleHttpTunnelClientGrader {
         sender: Sender<String>,
     }
-    impl SimpleHttpTunnelGrader {
+    impl SimpleHttpTunnelClientGrader {
         fn new(sender: Sender<String>) -> Self {
             Self { sender }
         }
     }
 
     #[async_trait]
-    impl<S> HttpTunnelGrader<S> for SimpleHttpTunnelGrader where
+    impl<S> HttpTunnelClientGrader<S> for SimpleHttpTunnelClientGrader where
         S: AsyncRead + AsyncWrite + Unpin + Send + 'static
     {
     }
 
     #[async_trait]
-    impl<S> Upgrader<S> for SimpleHttpTunnelGrader
+    impl<S> Upgrader<S> for SimpleHttpTunnelClientGrader
     where
         S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         type Output = SimpleHttpTunnelStream<S>;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
             self.sender
-                .send("call SimpleHttpTunnelGrader.upgrade".to_owned())
+                .send("call SimpleHttpTunnelClientGrader.upgrade".to_owned())
                 .await
                 .unwrap();
 
@@ -243,13 +243,13 @@ mod http_tests {
     }
 
     #[async_trait]
-    impl<S> Downgrader<S> for SimpleHttpTunnelGrader
+    impl<S> Downgrader<S> for SimpleHttpTunnelClientGrader
     where
         S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         async fn downgrade(&mut self, stream: <Self as Upgrader<S>>::Output) -> io::Result<S> {
             self.sender
-                .send("call SimpleHttpTunnelGrader.downgrade".to_owned())
+                .send("call SimpleHttpTunnelClientGrader.downgrade".to_owned())
                 .await
                 .unwrap();
 
@@ -326,7 +326,7 @@ mod http_tests {
             let cursor = Cursor::new(b"foo".to_vec());
             let mut stream = HttpClientInnerStream::<_, (), _, ()>::new(
                 cursor,
-                Some(HttpClientProxy::http(SimpleHttpTunnelGrader::new(
+                Some(HttpClientProxy::http(SimpleHttpTunnelClientGrader::new(
                     sender.clone(),
                 ))),
                 None,
@@ -343,11 +343,11 @@ mod http_tests {
 
             assert_eq!(
                 receiver.recv().await.unwrap(),
-                "call SimpleHttpTunnelGrader.upgrade"
+                "call SimpleHttpTunnelClientGrader.upgrade"
             );
             assert_eq!(
                 receiver.recv().await.unwrap(),
-                "call SimpleHttpTunnelGrader.downgrade"
+                "call SimpleHttpTunnelClientGrader.downgrade"
             );
             assert_eq!(receiver.try_recv().err(), Some(TryRecvError::Empty));
 
@@ -363,7 +363,7 @@ mod http_tests {
             let cursor = Cursor::new(b"foo".to_vec());
             let mut stream = HttpClientInnerStream::<_, (), _, _>::new(
                 cursor,
-                Some(HttpClientProxy::http(SimpleHttpTunnelGrader::new(
+                Some(HttpClientProxy::http(SimpleHttpTunnelClientGrader::new(
                     sender.clone(),
                 ))),
                 Some(SimpleTlsClientUpgrader::new(sender.clone())),
@@ -380,11 +380,11 @@ mod http_tests {
 
             assert_eq!(
                 receiver.recv().await.unwrap(),
-                "call SimpleHttpTunnelGrader.upgrade"
+                "call SimpleHttpTunnelClientGrader.upgrade"
             );
             assert_eq!(
                 receiver.recv().await.unwrap(),
-                "call SimpleHttpTunnelGrader.downgrade"
+                "call SimpleHttpTunnelClientGrader.downgrade"
             );
             assert_eq!(
                 receiver.recv().await.unwrap(),
@@ -414,7 +414,7 @@ mod http_tests {
                 cursor,
                 Some(HttpClientProxy::https(
                     SimpleHttpTunnelTlsUpgrader::new(sender.clone()),
-                    SimpleHttpTunnelGrader::new(sender.clone()),
+                    SimpleHttpTunnelClientGrader::new(sender.clone()),
                 )),
                 None,
             )
@@ -434,11 +434,11 @@ mod http_tests {
             );
             assert_eq!(
                 receiver.recv().await.unwrap(),
-                "call SimpleHttpTunnelGrader.upgrade"
+                "call SimpleHttpTunnelClientGrader.upgrade"
             );
             assert_eq!(
                 receiver.recv().await.unwrap(),
-                "call SimpleHttpTunnelGrader.downgrade"
+                "call SimpleHttpTunnelClientGrader.downgrade"
             );
             assert_eq!(
                 receiver.recv().await.unwrap(),
@@ -464,7 +464,7 @@ mod http_tests {
                 cursor,
                 Some(HttpClientProxy::https(
                     SimpleHttpTunnelTlsUpgrader::new(sender.clone()),
-                    SimpleHttpTunnelGrader::new(sender.clone()),
+                    SimpleHttpTunnelClientGrader::new(sender.clone()),
                 )),
                 Some(SimpleTlsClientUpgrader::new(sender.clone())),
             )
@@ -484,11 +484,11 @@ mod http_tests {
             );
             assert_eq!(
                 receiver.recv().await.unwrap(),
-                "call SimpleHttpTunnelGrader.upgrade"
+                "call SimpleHttpTunnelClientGrader.upgrade"
             );
             assert_eq!(
                 receiver.recv().await.unwrap(),
-                "call SimpleHttpTunnelGrader.downgrade"
+                "call SimpleHttpTunnelClientGrader.downgrade"
             );
             assert_eq!(
                 receiver.recv().await.unwrap(),

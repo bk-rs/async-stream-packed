@@ -8,9 +8,13 @@ use crate::gradable::Downgrader;
 use crate::tls::TlsClientUpgrader;
 use crate::upgradable::{UpgradableAsyncStream, Upgrader};
 
-pub trait HttpTunnelGrader<S>: Upgrader<S> + Downgrader<S> {}
+pub trait HttpTunnelClientGrader<S>: Upgrader<S> + Downgrader<S> {}
 
-impl<S> HttpTunnelGrader<S> for () where S: AsyncRead + AsyncWrite + Send + 'static {}
+impl<S> HttpTunnelClientGrader<S> for () where S: AsyncRead + AsyncWrite + Send + 'static {}
+
+pub trait HttpTunnelServerGrader<S>: Upgrader<S> + Downgrader<S> {}
+
+impl<S> HttpTunnelServerGrader<S> for () where S: AsyncRead + AsyncWrite + Send + 'static {}
 
 //
 //
@@ -20,9 +24,9 @@ where
     S: AsyncRead + AsyncWrite + Unpin,
     HTTU: TlsClientUpgrader<S> + Unpin,
     HTTU::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<S> + Unpin,
+    HTG: HttpTunnelClientGrader<S> + Unpin,
     <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    HTG: HttpTunnelClientGrader<HTTU::Output> + Unpin,
     <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
     TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
     <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
@@ -60,9 +64,9 @@ where
     S: AsyncRead + AsyncWrite + Unpin,
     HTTU: TlsClientUpgrader<S> + Unpin,
     HTTU::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<S> + Unpin,
+    HTG: HttpTunnelClientGrader<S> + Unpin,
     <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    HTG: HttpTunnelClientGrader<HTTU::Output> + Unpin,
     <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
     TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
     <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
@@ -116,9 +120,9 @@ where
     S: AsyncRead + AsyncWrite + Unpin,
     HTTU: TlsClientUpgrader<S> + Unpin,
     HTTU::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<S> + Unpin,
+    HTG: HttpTunnelClientGrader<S> + Unpin,
     <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    HTG: HttpTunnelClientGrader<HTTU::Output> + Unpin,
     <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
     TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
     <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
@@ -203,9 +207,9 @@ where
     S: AsyncRead + AsyncWrite + Unpin,
     HTTU: TlsClientUpgrader<S> + Unpin,
     HTTU::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<S> + Unpin,
+    HTG: HttpTunnelClientGrader<S> + Unpin,
     <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    HTG: HttpTunnelClientGrader<HTTU::Output> + Unpin,
     <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
     TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
     <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
@@ -229,9 +233,9 @@ where
     S: AsyncRead + AsyncWrite + Unpin,
     HTTU: TlsClientUpgrader<S> + Unpin,
     HTTU::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<S> + Unpin,
+    HTG: HttpTunnelClientGrader<S> + Unpin,
     <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
-    HTG: HttpTunnelGrader<HTTU::Output> + Unpin,
+    HTG: HttpTunnelClientGrader<HTTU::Output> + Unpin,
     <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin,
     TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
     <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin,
@@ -251,9 +255,9 @@ where
     S: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
     HTTU: TlsClientUpgrader<S> + Unpin,
     HTTU::Output: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
-    HTG: HttpTunnelGrader<S> + Unpin,
+    HTG: HttpTunnelClientGrader<S> + Unpin,
     <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
-    HTG: HttpTunnelGrader<HTTU::Output> + Unpin + AsyncSeek,
+    HTG: HttpTunnelClientGrader<HTTU::Output> + Unpin + AsyncSeek,
     <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
     TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
     <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncSeek,
@@ -270,9 +274,9 @@ where
     S: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
     HTTU: TlsClientUpgrader<S> + Unpin,
     HTTU::Output: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
-    HTG: HttpTunnelGrader<S> + Unpin,
+    HTG: HttpTunnelClientGrader<S> + Unpin,
     <HTG as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
-    HTG: HttpTunnelGrader<HTTU::Output> + Unpin + AsyncBufRead,
+    HTG: HttpTunnelClientGrader<HTTU::Output> + Unpin + AsyncBufRead,
     <HTG as Upgrader<HTTU::Output>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
     TU: TlsClientUpgrader<HTTU::Output> + Upgrader<S> + Unpin,
     <TU as Upgrader<S>>::Output: AsyncRead + AsyncWrite + Unpin + AsyncBufRead,
@@ -305,7 +309,7 @@ enum HttpClientProxyInner<S, TU, HTG> {
 
 impl<S, TU, HTG> HttpClientProxy<S, TU, HTG>
 where
-    HTG: HttpTunnelGrader<S>,
+    HTG: HttpTunnelClientGrader<S>,
 {
     pub fn http(http_tunnel_grader: HTG) -> Self {
         Self {
@@ -317,7 +321,7 @@ where
 impl<S, TU, HTG> HttpClientProxy<S, TU, HTG>
 where
     TU: TlsClientUpgrader<S>,
-    HTG: HttpTunnelGrader<TU::Output>,
+    HTG: HttpTunnelClientGrader<TU::Output>,
 {
     pub fn https(tls_upgrader: TU, http_tunnel_grader: HTG) -> Self {
         Self {
