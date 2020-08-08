@@ -5,6 +5,7 @@ mod upgradable_tests {
     use async_trait::async_trait;
     use futures_lite::future::block_on;
     use futures_lite::io::Cursor;
+    use futures_lite::io::{AsyncRead, AsyncWrite};
 
     use async_stream_packed::{UpgradableAsyncStream, Upgrader};
 
@@ -16,7 +17,7 @@ mod upgradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleUpgrader
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -71,7 +72,7 @@ mod upgradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleUpgraderWithNotUpgradeRequired
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, _stream: S) -> io::Result<Self::Output> {

@@ -5,6 +5,7 @@ mod gradable_tests {
     use async_trait::async_trait;
     use futures_lite::future::block_on;
     use futures_lite::io::Cursor;
+    use futures_lite::io::{AsyncRead, AsyncWrite};
 
     use async_stream_packed::{Downgrader, GradableAsyncStream, Upgrader};
 
@@ -16,7 +17,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleGrader
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -27,7 +28,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Downgrader<S> for SimpleGrader
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         async fn downgrade(
             &mut self,
@@ -84,7 +85,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleGraderWithNotDowngradeRequired
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -95,7 +96,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Downgrader<S> for SimpleGraderWithNotDowngradeRequired
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         async fn downgrade(
             &mut self,
@@ -157,7 +158,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleGraderWithOnceUpgradeAndOnceDowngrade
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -180,7 +181,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Downgrader<S> for SimpleGraderWithOnceUpgradeAndOnceDowngrade
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         async fn downgrade(
             &mut self,

@@ -2,6 +2,7 @@ use std::io;
 use std::mem;
 
 use async_trait::async_trait;
+use futures_io::{AsyncRead, AsyncWrite};
 
 use crate::upgradable::{Inner, UpgradableAsyncStream, Upgrader};
 
@@ -18,7 +19,7 @@ pub trait Downgrader<S>: Upgrader<S> {
 #[async_trait]
 impl<S> Downgrader<S> for ()
 where
-    S: Send + 'static,
+    S: AsyncRead + AsyncWrite + Send + 'static,
 {
     async fn downgrade(&mut self, _: <Self as Upgrader<S>>::Output) -> io::Result<S> {
         unreachable!()

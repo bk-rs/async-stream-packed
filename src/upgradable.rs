@@ -24,7 +24,7 @@ where
 
 #[async_trait]
 pub trait Upgrader<S> {
-    type Output;
+    type Output: AsyncRead + AsyncWrite;
     async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output>;
     fn upgrade_required(&self) -> bool {
         true
@@ -34,7 +34,7 @@ pub trait Upgrader<S> {
 #[async_trait]
 impl<S> Upgrader<S> for ()
 where
-    S: Send + 'static,
+    S: AsyncRead + AsyncWrite + Send + 'static,
 {
     type Output = S;
     async fn upgrade(&mut self, _: S) -> io::Result<Self::Output> {
@@ -94,7 +94,7 @@ where
 
 impl<S> UpgradableAsyncStream<S, ()>
 where
-    S: Send + 'static,
+    S: AsyncRead + AsyncWrite + Send + 'static,
 {
     pub fn with_stream(stream: S) -> Self {
         Self {

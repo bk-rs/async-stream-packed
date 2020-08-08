@@ -10,7 +10,7 @@ use crate::upgradable::{UpgradableAsyncStream, Upgrader};
 
 pub trait HttpTunnelGrader<S>: Upgrader<S> + Downgrader<S> {}
 
-impl<S> HttpTunnelGrader<S> for () where S: Send + 'static {}
+impl<S> HttpTunnelGrader<S> for () where S: AsyncRead + AsyncWrite + Send + 'static {}
 
 //
 //

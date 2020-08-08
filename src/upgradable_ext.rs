@@ -1,5 +1,7 @@
 use std::io;
 
+use futures_io::{AsyncRead, AsyncWrite};
+
 use crate::upgradable::{Inner, UpgradableAsyncStream, Upgrader};
 
 //
@@ -12,7 +14,7 @@ pub trait UpgraderExtRefer<S>: Upgrader<S> {
 
 impl<S> UpgraderExtRefer<S> for ()
 where
-    S: Send + 'static,
+    S: AsyncRead + AsyncWrite + Send + 'static,
 {
     fn get_ref(output: &<Self as Upgrader<S>>::Output) -> &S {
         output
@@ -52,7 +54,7 @@ pub trait UpgraderExtIntoStream<S>: Upgrader<S> {
 
 impl<S> UpgraderExtIntoStream<S> for ()
 where
-    S: Send + 'static,
+    S: AsyncRead + AsyncWrite + Send + 'static,
 {
     fn into_stream(output: <Self as Upgrader<S>>::Output) -> io::Result<S> {
         Ok(output)

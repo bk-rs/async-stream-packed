@@ -5,6 +5,7 @@ mod upgradable_ext_tests {
     use async_trait::async_trait;
     use futures_lite::future::block_on;
     use futures_lite::io::Cursor;
+    use futures_lite::io::{AsyncRead, AsyncWrite};
 
     use async_stream_packed::{
         UpgradableAsyncStream, Upgrader, UpgraderExtIntoStream, UpgraderExtRefer,
@@ -15,7 +16,7 @@ mod upgradable_ext_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleUpgrader
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -25,7 +26,7 @@ mod upgradable_ext_tests {
 
     impl<S> UpgraderExtRefer<S> for SimpleUpgrader
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         fn get_ref(output: &Self::Output) -> &S {
             output
@@ -37,7 +38,7 @@ mod upgradable_ext_tests {
 
     impl<S> UpgraderExtIntoStream<S> for SimpleUpgrader
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         fn into_stream(output: Self::Output) -> io::Result<S> {
             Ok(output)
@@ -47,7 +48,7 @@ mod upgradable_ext_tests {
     #[test]
     fn refer() -> io::Result<()> {
         block_on(async {
-            let cursor = Cursor::new(b"foo");
+            let cursor = Cursor::new(b"foo".to_vec());
             let mut stream = UpgradableAsyncStream::new(cursor, SimpleUpgrader {});
 
             assert_eq!(stream.get_ref().get_ref(), &b"foo");
@@ -59,7 +60,7 @@ mod upgradable_ext_tests {
             assert_eq!(stream.get_mut().get_mut(), &mut b"foo");
 
             //
-            let cursor = Cursor::new(b"foo");
+            let cursor = Cursor::new(b"foo".to_vec());
             let mut stream = UpgradableAsyncStream::with_upgraded_stream(cursor);
 
             assert_eq!(stream.get_ref().get_ref(), &b"foo");
@@ -72,13 +73,13 @@ mod upgradable_ext_tests {
     #[test]
     fn into_stream() -> io::Result<()> {
         block_on(async {
-            let cursor = Cursor::new(b"foo");
+            let cursor = Cursor::new(b"foo".to_vec());
             let stream = UpgradableAsyncStream::new(cursor, SimpleUpgrader {});
 
             assert_eq!(stream.into_stream()?.get_ref(), &b"foo");
 
             //
-            let cursor = Cursor::new(b"foo");
+            let cursor = Cursor::new(b"foo".to_vec());
             let stream = UpgradableAsyncStream::with_upgraded_stream(cursor);
 
             assert_eq!(stream.into_stream()?.get_ref(), &b"foo");
@@ -95,7 +96,7 @@ mod upgradable_ext_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleUpgraderWithoutIntoStream
     where
-        S: Send + 'static,
+        S: AsyncRead + AsyncWrite + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -106,13 +107,13 @@ mod upgradable_ext_tests {
     #[test]
     fn try_into_stream() -> io::Result<()> {
         block_on(async {
-            let cursor = Cursor::new(b"foo");
+            let cursor = Cursor::new(b"foo".to_vec());
             let stream = UpgradableAsyncStream::new(cursor, SimpleUpgrader {});
 
             assert_eq!(stream.try_into_stream()?.get_ref(), &b"foo");
 
             //
-            let cursor = Cursor::new(b"foo");
+            let cursor = Cursor::new(b"foo".to_vec());
             let stream = UpgradableAsyncStream::with_upgraded_stream(cursor);
 
             let err = stream.try_into_stream().err().unwrap();
