@@ -16,7 +16,7 @@ mod upgradable_ext_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleUpgrader
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -26,7 +26,7 @@ mod upgradable_ext_tests {
 
     impl<S> UpgraderExtRefer<S> for SimpleUpgrader
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         fn get_ref(output: &Self::Output) -> &S {
             output
@@ -38,7 +38,7 @@ mod upgradable_ext_tests {
 
     impl<S> UpgraderExtIntoStream<S> for SimpleUpgrader
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         fn into_stream(output: Self::Output) -> io::Result<S> {
             Ok(output)
@@ -96,7 +96,7 @@ mod upgradable_ext_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleUpgraderWithoutIntoStream
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {

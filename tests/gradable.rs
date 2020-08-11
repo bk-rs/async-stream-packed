@@ -17,7 +17,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleGrader
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -28,7 +28,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Downgrader<S> for SimpleGrader
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         async fn downgrade(
             &mut self,
@@ -85,7 +85,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleGraderWithNotDowngradeRequired
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -96,7 +96,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Downgrader<S> for SimpleGraderWithNotDowngradeRequired
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         async fn downgrade(
             &mut self,
@@ -158,7 +158,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleGraderWithOnceUpgradeAndOnceDowngrade
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -181,7 +181,7 @@ mod gradable_tests {
     #[async_trait]
     impl<S> Downgrader<S> for SimpleGraderWithOnceUpgradeAndOnceDowngrade
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         async fn downgrade(
             &mut self,

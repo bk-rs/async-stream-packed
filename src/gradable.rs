@@ -19,7 +19,7 @@ pub trait Downgrader<S>: Upgrader<S> {
 #[async_trait]
 impl<S> Downgrader<S> for ()
 where
-    S: AsyncRead + AsyncWrite + Send + 'static,
+    S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
 {
     async fn downgrade(&mut self, _: <Self as Upgrader<S>>::Output) -> io::Result<S> {
         unreachable!()

@@ -14,7 +14,7 @@ pub trait UpgraderExtRefer<S>: Upgrader<S> {
 
 impl<S> UpgraderExtRefer<S> for ()
 where
-    S: AsyncRead + AsyncWrite + Send + 'static,
+    S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
 {
     fn get_ref(output: &<Self as Upgrader<S>>::Output) -> &S {
         output
@@ -54,7 +54,7 @@ pub trait UpgraderExtIntoStream<S>: Upgrader<S> {
 
 impl<S> UpgraderExtIntoStream<S> for ()
 where
-    S: AsyncRead + AsyncWrite + Send + 'static,
+    S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
 {
     fn into_stream(output: <Self as Upgrader<S>>::Output) -> io::Result<S> {
         Ok(output)

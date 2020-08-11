@@ -17,7 +17,7 @@ mod upgradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleUpgrader
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, stream: S) -> io::Result<Self::Output> {
@@ -72,7 +72,7 @@ mod upgradable_tests {
     #[async_trait]
     impl<S> Upgrader<S> for SimpleUpgraderWithNotUpgradeRequired
     where
-        S: AsyncRead + AsyncWrite + Send + 'static,
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
     {
         type Output = S;
         async fn upgrade(&mut self, _stream: S) -> io::Result<Self::Output> {
