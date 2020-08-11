@@ -35,5 +35,5 @@ async-io = { version = "0.1", default-features = false, features = [] }
 
 [workspace]
 members = [
-    "demos/smol",
+    "demos/async-net",
 ]

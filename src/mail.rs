@@ -19,7 +19,7 @@ TLS
 Read(Greeting)
 a1 LOGIN xx yy
 
-e.g. https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/smol/src/imap_client.rs
+e.g. https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/imap_client.rs
 */
 pub type ImapClientInnerStream<S, SU> = UpgradableAsyncStream<S, SU>;
 
@@ -53,7 +53,7 @@ Read(Greeting)
 EHLO RUST
 AUTH LOGIN
 
-e.g. https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/smol/src/smtp_client.rs
+e.g. https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/smtp_client.rs
 */
 pub type SmtpClientInnerStream<S, SU> = UpgradableAsyncStream<S, SU>;
 

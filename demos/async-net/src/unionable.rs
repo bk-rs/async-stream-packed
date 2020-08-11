@@ -1,6 +1,6 @@
 /*
-cargo run -p async-stream-packed-demo-smol --bin unionable httpbin.org 80 false /ip
-cargo run -p async-stream-packed-demo-smol --bin unionable httpbin.org 443 true /ip
+cargo run -p async-stream-packed-demo-async-net --bin unionable httpbin.org 80 false /ip
+cargo run -p async-stream-packed-demo-async-net --bin unionable httpbin.org 443 true /ip
 */
 
 use std::env;

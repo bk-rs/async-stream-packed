@@ -4,13 +4,13 @@
 
 ## Examples
 
-### smol 
+### async-net
 
-* [unionable](demos/smol/src/unionable.rs)
-* [async-tls client upgrader](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/smol/src/async_tls_client.rs)
-* [async-native-tls client upgrader](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/smol/src/async_native_tls_client.rs)
-* [imap client](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/smol/src/imap_client.rs)
-* [smtp client](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/smol/src/smtp_client.rs)
+* [unionable](demos/async-net/src/unionable.rs)
+* [async-tls client upgrader](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/async_tls_client.rs)
+* [async-native-tls client upgrader](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/async_native_tls_client.rs)
+* [imap client](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/imap_client.rs)
+* [smtp client](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/smtp_client.rs)
 
 ## Dev
 
