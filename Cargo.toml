@@ -18,7 +18,7 @@ tokio_io = ["futures-x-io/tokio_io"]
 
 syncable_with_context = []
 syncable_with_waker = ["futures-util/alloc"]
-unionable = ["futures-util/io"]
+unionable = ["either"]
 upgradable = ["async-trait"]
 timeoutable = ["futures-timer"]
 tls = ["upgradable"]
@@ -32,6 +32,7 @@ futures-x-io = { version = "0.1", default-features = false, features = [], optio
 futures-util = { version = "0.3", default-features = false, features = [], optional = true }
 async-trait = { version = "0.1", default-features = false, features = [], optional = true }
 futures-timer = { version = "3.0", default-features = false, features = [], optional = true }
+either = { version = "1.5", default-features = false, features = [], optional = true }
 
 [dev-dependencies]
 futures-lite = { version = "0.1", default-features = false, features = [] }
@@ -43,4 +44,5 @@ tokio = { version = "0.2", default-features = false, features = ["io-util"] }
 [workspace]
 members = [
     "demos/async-net",
+    "demos/tokio",
 ]

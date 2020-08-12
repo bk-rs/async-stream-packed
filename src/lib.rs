@@ -22,7 +22,8 @@ cfg_if::cfg_if! {
         pub mod unionable;
         pub use unionable::UnionableAsyncStream;
     } else if #[cfg(all(feature = "unionable", not(feature = "futures_io"), feature = "tokio_io"))] {
-        // TODO
+        pub mod unionable;
+        pub use unionable::UnionableAsyncStream;
     }
 }
 
