@@ -1,8 +1,8 @@
-use std::io;
+use std::io::{self, SeekFrom};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use futures_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite, SeekFrom};
+use futures_x_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite};
 
 use crate::gradable::Downgrader;
 use crate::tls::TlsClientUpgrader;
@@ -223,8 +223,14 @@ where
         case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_flush(cx))
     }
 
+    #[cfg(all(feature = "futures_io", not(feature = "tokio_io")))]
     fn poll_close(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
         case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_close(cx))
+    }
+
+    #[cfg(all(not(feature = "futures_io"), feature = "tokio_io"))]
+    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_shutdown(cx))
     }
 }
 
@@ -264,8 +270,23 @@ where
     <TU as Upgrader<<HTTU as Upgrader<S>>::Output>>::Output:
         AsyncRead + AsyncWrite + Unpin + AsyncSeek,
 {
+    #[cfg(all(feature = "futures_io", not(feature = "tokio_io")))]
     fn poll_seek(self: Pin<&mut Self>, cx: &mut Context, pos: SeekFrom) -> Poll<io::Result<u64>> {
         case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_seek(cx, pos))
+    }
+
+    #[cfg(all(not(feature = "futures_io"), feature = "tokio_io"))]
+    fn start_seek(
+        self: Pin<&mut Self>,
+        cx: &mut Context,
+        position: SeekFrom,
+    ) -> Poll<io::Result<()>> {
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).start_seek(cx, position))
+    }
+
+    #[cfg(all(not(feature = "futures_io"), feature = "tokio_io"))]
+    fn poll_complete(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<u64>> {
+        case!(self.get_mut(), ref mut inner => Pin::new(inner).poll_complete(cx))
     }
 }
 

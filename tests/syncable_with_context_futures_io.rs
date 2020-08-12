@@ -1,5 +1,9 @@
-#[cfg(feature = "syncable_with_context")]
-mod syncable_with_context_tests {
+#[cfg(all(
+    feature = "syncable_with_context",
+    feature = "futures_io",
+    not(feature = "tokio_io")
+))]
+mod syncable_with_context_futures_io_tests {
     use std::io::{self, BufRead, Read, Seek, Write};
     use std::task::Poll;
 

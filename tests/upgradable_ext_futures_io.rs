@@ -1,5 +1,9 @@
-#[cfg(feature = "upgradable")]
-mod upgradable_ext_tests {
+#[cfg(all(
+    feature = "upgradable",
+    feature = "futures_io",
+    not(feature = "tokio_io")
+))]
+mod upgradable_ext_futures_io_tests {
     use std::io;
 
     use async_trait::async_trait;

@@ -1,7 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
-use futures_io::{AsyncRead, AsyncWrite};
 use futures_util::future::Either;
+use futures_x_io::{AsyncRead, AsyncWrite};
 
 pub struct UnionableAsyncStream<SL, SR> {
     inner: Either<SL, SR>,
