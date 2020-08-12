@@ -12,6 +12,10 @@
 * [imap client](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/imap_client.rs)
 * [smtp client](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/smtp_client.rs)
 
+### tokio
+
+* [unionable](demos/tokio/src/unionable.rs)
+
 ## Dev
 
 ```
