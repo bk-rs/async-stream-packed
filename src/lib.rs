@@ -49,16 +49,6 @@ cfg_if::cfg_if! {
     }
 }
 
-cfg_if::cfg_if! {
-    if #[cfg(all(feature = "timeoutable", feature = "futures_io", not(feature = "tokio_io")))] {
-        pub mod timeoutable;
-        pub use timeoutable::{AsyncReadWithTimeoutExt, AsyncWriteWithTimeoutExt};
-    } else if #[cfg(all(feature = "timeoutable", not(feature = "futures_io"), feature = "tokio_io"))] {
-        pub mod timeoutable;
-        pub use timeoutable::{AsyncReadWithTimeoutExt, AsyncWriteWithTimeoutExt};
-    }
-}
-
 //
 //
 //
