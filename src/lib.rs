@@ -43,7 +43,7 @@ cfg_if::cfg_if! {
         pub use tls::{TlsClientUpgrader, TlsServerUpgrader};
 
         pub mod http_tunnel;
-        pub use http_tunnel::{HttpTunnelClientGrader, HttpTunnelServerGrader};
+        pub use http_tunnel::HttpTunnelClientGrader;
 
         pub mod http;
         pub use http::{HttpClientInnerStream, HttpClientProxy};
@@ -68,7 +68,7 @@ cfg_if::cfg_if! {
         pub use tls::{TlsClientUpgrader, TlsServerUpgrader};
 
         pub mod http_tunnel;
-        pub use http_tunnel::{HttpTunnelClientGrader, HttpTunnelServerGrader};
+        pub use http_tunnel::HttpTunnelClientGrader;
 
         pub mod http;
         pub use http::{HttpClientInnerStream, HttpClientProxy};
