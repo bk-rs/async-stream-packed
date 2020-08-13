@@ -29,7 +29,7 @@ async-trait = { version = "0.1", default-features = false, features = [], option
 either = { version = "1.5", default-features = false, features = [], optional = true }
 
 [dev-dependencies]
-futures-lite = { version = "0.1", default-features = false, features = [] }
+futures-lite = { version = "0.1", default-features = false, features = ["std"] }
 async-channel = { version = "1.4", default-features = false, features = [] }
 
 tokio = { version = "0.2", default-features = false, features = ["io-util"] }

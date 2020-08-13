@@ -9,7 +9,7 @@ mod upgradable_ext_futures_io_tests {
     use async_trait::async_trait;
     use futures_lite::future::block_on;
     use futures_lite::io::Cursor;
-    use futures_lite::io::{AsyncRead, AsyncWrite};
+    use futures_lite::{AsyncRead, AsyncWrite};
 
     use async_stream_packed::{
         UpgradableAsyncStream, Upgrader, UpgraderExtIntoStream, UpgraderExtRefer,
