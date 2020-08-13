@@ -9,7 +9,7 @@ name = "unionable"
 path = "src/unionable.rs"
 
 [dependencies]
-async-stream-packed = { path = "../..", version = "0.1", features = ["tokio_io", "unionable"] }
+async-stream-packed = { path = "../..", version = "0.2", features = ["tokio_io", "unionable"] }
 tokio = { version = "0.2", default-features = false, features = ["io-util", "net", "macros"] }
 tokio-rustls = "0.14"
 rustls = "0.18"
