@@ -3,7 +3,7 @@
     feature = "futures_io",
     not(feature = "tokio_io")
 ))]
-mod mail_futures_io_tests {
+mod imap_futures_io_tests {
     use std::io;
     use std::pin::Pin;
     use std::task::{Context, Poll};
