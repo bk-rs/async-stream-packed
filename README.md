@@ -16,6 +16,10 @@
 
 * [unionable](demos/tokio/src/unionable.rs)
 
+### async-std
+
+* [unionable](demos/async-std/src/unionable.rs)
+
 ## Dev
 
 ```
