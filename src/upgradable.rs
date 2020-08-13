@@ -1,10 +1,10 @@
-use std::io;
+use std::io::{self, SeekFrom};
 use std::mem;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use async_trait::async_trait;
-use futures_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite, SeekFrom};
+use futures_x_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite};
 
 pub struct UpgradableAsyncStream<S, SU>
 where
@@ -141,13 +141,24 @@ where
         }
     }
 
-    fn poll_close(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), io::Error>> {
+    #[cfg(all(feature = "futures_io", not(feature = "tokio_io")))]
+    fn poll_close(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
         let this = self.get_mut();
         let inner = &mut this.inner;
-
         match inner {
             Inner::Pending(s, _) => Pin::new(s).poll_close(cx),
             Inner::Upgraded(s, _) => Pin::new(s).poll_close(cx),
+            Inner::None => panic!("never"),
+        }
+    }
+
+    #[cfg(all(not(feature = "futures_io"), feature = "tokio_io"))]
+    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<()>> {
+        let this = self.get_mut();
+        let inner = &mut this.inner;
+        match inner {
+            Inner::Pending(s, _) => Pin::new(s).poll_shutdown(cx),
+            Inner::Upgraded(s, _) => Pin::new(s).poll_shutdown(cx),
             Inner::None => panic!("never"),
         }
     }
@@ -181,6 +192,7 @@ where
     S: AsyncSeek + Unpin,
     SU::Output: AsyncSeek + Unpin,
 {
+    #[cfg(all(feature = "futures_io", not(feature = "tokio_io")))]
     fn poll_seek(self: Pin<&mut Self>, cx: &mut Context, pos: SeekFrom) -> Poll<io::Result<u64>> {
         let this = self.get_mut();
         let inner = &mut this.inner;
@@ -188,6 +200,34 @@ where
         match inner {
             Inner::Pending(s, _) => Pin::new(s).poll_seek(cx, pos),
             Inner::Upgraded(s, _) => Pin::new(s).poll_seek(cx, pos),
+            Inner::None => panic!("never"),
+        }
+    }
+
+    #[cfg(all(not(feature = "futures_io"), feature = "tokio_io"))]
+    fn start_seek(
+        self: Pin<&mut Self>,
+        cx: &mut Context,
+        position: SeekFrom,
+    ) -> Poll<io::Result<()>> {
+        let this = self.get_mut();
+        let inner = &mut this.inner;
+
+        match inner {
+            Inner::Pending(s, _) => Pin::new(s).start_seek(cx, position),
+            Inner::Upgraded(s, _) => Pin::new(s).start_seek(cx, position),
+            Inner::None => panic!("never"),
+        }
+    }
+
+    #[cfg(all(not(feature = "futures_io"), feature = "tokio_io"))]
+    fn poll_complete(self: Pin<&mut Self>, cx: &mut Context) -> Poll<io::Result<u64>> {
+        let this = self.get_mut();
+        let inner = &mut this.inner;
+
+        match inner {
+            Inner::Pending(s, _) => Pin::new(s).poll_complete(cx),
+            Inner::Upgraded(s, _) => Pin::new(s).poll_complete(cx),
             Inner::None => panic!("never"),
         }
     }

@@ -12,17 +12,20 @@
 * [imap client](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/imap_client.rs)
 * [smtp client](https://github.com/bk-rs/async-stream-tls-upgrader/blob/master/demos/async-net/src/smtp_client.rs)
 
+### tokio
+
+* [unionable](demos/tokio/src/unionable.rs)
+
 ## Dev
 
 ```
-cargo test --all-features --all -- --nocapture && \
 cargo clippy --all -- -D clippy::all && \
 cargo fmt --all -- --check
 ```
 
 ```
 cargo build-all-features
-cargo test-all-features --all
+cargo test-all-features
 ```
 
 ```

@@ -2,7 +2,7 @@ use std::io;
 use std::mem;
 
 use async_trait::async_trait;
-use futures_io::{AsyncRead, AsyncWrite};
+use futures_x_io::{AsyncRead, AsyncWrite};
 
 use crate::upgradable::{Inner, UpgradableAsyncStream, Upgrader};
 

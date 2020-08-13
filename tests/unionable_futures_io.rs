@@ -1,13 +1,17 @@
-#[cfg(feature = "unionable")]
-mod unionable_tests {
+#[cfg(all(
+    feature = "unionable",
+    feature = "futures_io",
+    not(feature = "tokio_io")
+))]
+mod unionable_futures_io_tests {
     use std::io;
     use std::pin::Pin;
     use std::task::{Context, Poll};
 
-    use futures_io::{AsyncRead, AsyncWrite};
     use futures_lite::future::block_on;
     use futures_lite::io::{empty, Cursor, Empty};
     use futures_lite::io::{AsyncReadExt, AsyncWriteExt};
+    use futures_lite::{AsyncRead, AsyncWrite};
 
     use async_stream_packed::UnionableAsyncStream;
 

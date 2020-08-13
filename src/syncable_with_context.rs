@@ -2,7 +2,7 @@ use std::io::{self, BufRead, Read, Seek, Write};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use futures_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite};
+use futures_x_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite};
 
 pub struct SyncableWithContextAsyncStream<'a, 'b, S> {
     inner: S,
@@ -62,9 +62,21 @@ impl<'a, 'b, S> Seek for SyncableWithContextAsyncStream<'a, 'b, S>
 where
     S: AsyncSeek + Unpin,
 {
+    #[cfg(all(feature = "futures_io", not(feature = "tokio_io")))]
     fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
         match Pin::new(&mut self.inner).poll_seek(self.cx, pos) {
             Poll::Ready(ret) => ret,
+            Poll::Pending => Err(io::ErrorKind::WouldBlock.into()),
+        }
+    }
+
+    #[cfg(all(not(feature = "futures_io"), feature = "tokio_io"))]
+    fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
+        match Pin::new(&mut self.inner).start_seek(self.cx, pos) {
+            Poll::Ready(_) => match Pin::new(&mut self.inner).poll_complete(self.cx) {
+                Poll::Ready(ret) => ret,
+                Poll::Pending => Err(io::ErrorKind::WouldBlock.into()),
+            },
             Poll::Pending => Err(io::ErrorKind::WouldBlock.into()),
         }
     }

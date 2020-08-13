@@ -13,9 +13,12 @@ categories = ["asynchronous"]
 readme = "README.md"
 
 [features]
+futures_io = ["futures-x-io/futures_io"]
+tokio_io = ["futures-x-io/tokio_io"]
+
 syncable_with_context = []
 syncable_with_waker = ["futures-util/alloc"]
-unionable = ["futures-util/io"]
+unionable = ["either"]
 upgradable = ["async-trait"]
 timeoutable = ["futures-timer"]
 tls = ["upgradable"]
@@ -23,17 +26,23 @@ http = ["upgradable", "tls"]
 mail = ["upgradable", "tls"]
 
 [dependencies]
-futures-io = { version = "0.3", default-features = false, features = ["std"] }
+cfg-if = { version = "0.1", default-features = false, features = [] }
+
+futures-x-io = { version = "0.1", default-features = false, features = [], optional = true }
 futures-util = { version = "0.3", default-features = false, features = [], optional = true }
 async-trait = { version = "0.1", default-features = false, features = [], optional = true }
 futures-timer = { version = "3.0", default-features = false, features = [], optional = true }
+either = { version = "1.5", default-features = false, features = [], optional = true }
 
 [dev-dependencies]
 futures-lite = { version = "0.1", default-features = false, features = [] }
 async-channel = { version = "1.4", default-features = false, features = [] }
 async-io = { version = "0.1", default-features = false, features = [] }
 
+tokio = { version = "0.2", default-features = false, features = ["io-util"] }
+
 [workspace]
 members = [
     "demos/async-net",
+    "demos/tokio",
 ]

@@ -1,5 +1,9 @@
-#[cfg(feature = "syncable_with_waker")]
-mod syncable_with_waker_tests {
+#[cfg(all(
+    feature = "syncable_with_waker",
+    feature = "futures_io",
+    not(feature = "tokio_io")
+))]
+mod syncable_with_waker_futures_io_tests {
     use std::io::{self, Read, Seek, Write};
     use std::task::Poll;
 

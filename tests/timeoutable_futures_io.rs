@@ -1,5 +1,9 @@
-#[cfg(feature = "timeoutable")]
-mod timeoutable_tests {
+#[cfg(all(
+    feature = "timeoutable",
+    feature = "futures_io",
+    not(feature = "tokio_io")
+))]
+mod timeoutable_futures_io_tests {
     use std::io;
     use std::net::{TcpListener, TcpStream};
     use std::time::{Duration, Instant};

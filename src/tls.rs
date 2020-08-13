@@ -1,4 +1,4 @@
-use futures_io::{AsyncRead, AsyncWrite};
+use futures_x_io::{AsyncRead, AsyncWrite};
 
 use crate::upgradable::Upgrader;
 

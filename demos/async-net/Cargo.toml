@@ -9,7 +9,7 @@ name = "unionable"
 path = "src/unionable.rs"
 
 [dependencies]
-async-stream-packed = { path = "../..", version = "0.1", features = ["unionable"] }
+async-stream-packed = { path = "../..", version = "0.1", features = ["futures_io", "unionable"] }
 futures-lite = "0.1"
 async-net = "0.1"
 async-tls = "0.9"

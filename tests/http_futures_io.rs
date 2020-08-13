@@ -1,14 +1,14 @@
-#[cfg(feature = "http")]
-mod http_tests {
+#[cfg(all(feature = "http", feature = "futures_io", not(feature = "tokio_io")))]
+mod http_futures_io_tests {
     use std::io;
     use std::pin::Pin;
     use std::task::{Context, Poll};
 
     use async_channel::{unbounded, Sender, TryRecvError};
     use async_trait::async_trait;
-    use futures_io::{AsyncRead, AsyncWrite};
     use futures_lite::future::block_on;
     use futures_lite::io::Cursor;
+    use futures_lite::{AsyncRead, AsyncWrite};
     use futures_lite::{AsyncReadExt, AsyncWriteExt};
 
     use async_stream_packed::{

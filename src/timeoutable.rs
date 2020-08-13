@@ -4,8 +4,8 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 use std::time::Duration;
 
-use futures_io::{AsyncRead, AsyncWrite};
 use futures_timer::Delay;
+use futures_x_io::{AsyncRead, AsyncWrite};
 
 //
 //
