@@ -16,13 +16,9 @@ readme = "README.md"
 futures_io = ["futures-x-io/futures_io"]
 tokio_io = ["futures-x-io/tokio_io"]
 
-syncable_with_context = []
 syncable_with_waker = ["futures-util/alloc"]
 unionable = ["either"]
 upgradable = ["async-trait"]
-tls = ["upgradable"]
-http = ["upgradable", "tls"]
-mail = ["upgradable", "tls"]
 
 [dependencies]
 cfg-if = { version = "0.1", default-features = false, features = [] }

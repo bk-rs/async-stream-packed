@@ -1,4 +1,8 @@
-#[cfg(all(feature = "http", feature = "futures_io", not(feature = "tokio_io")))]
+#[cfg(all(
+    feature = "upgradable",
+    feature = "futures_io",
+    not(feature = "tokio_io")
+))]
 mod http_futures_io_tests {
     use std::io;
     use std::pin::Pin;

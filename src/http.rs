@@ -4,17 +4,9 @@ use std::task::{Context, Poll};
 
 use futures_x_io::{AsyncBufRead, AsyncRead, AsyncSeek, AsyncWrite};
 
-use crate::gradable::Downgrader;
+use crate::http_tunnel::HttpTunnelClientGrader;
 use crate::tls::TlsClientUpgrader;
 use crate::upgradable::{UpgradableAsyncStream, Upgrader};
-
-pub trait HttpTunnelClientGrader<S>: Upgrader<S> + Downgrader<S> {}
-
-impl<S> HttpTunnelClientGrader<S> for () where S: AsyncRead + AsyncWrite + Unpin + Send + 'static {}
-
-pub trait HttpTunnelServerGrader<S>: Upgrader<S> + Downgrader<S> {}
-
-impl<S> HttpTunnelServerGrader<S> for () where S: AsyncRead + AsyncWrite + Unpin + Send + 'static {}
 
 //
 //

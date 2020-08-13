@@ -1,4 +1,8 @@
-#[cfg(all(feature = "mail", feature = "futures_io", not(feature = "tokio_io")))]
+#[cfg(all(
+    feature = "upgradable",
+    feature = "futures_io",
+    not(feature = "tokio_io")
+))]
 mod mail_futures_io_tests {
     use std::io;
     use std::pin::Pin;
@@ -11,9 +15,7 @@ mod mail_futures_io_tests {
     use futures_lite::{AsyncRead, AsyncWrite};
     use futures_lite::{AsyncReadExt, AsyncWriteExt};
 
-    use async_stream_packed::{
-        ImapClientInnerStream, SmtpClientInnerStream, TlsClientUpgrader, Upgrader,
-    };
+    use async_stream_packed::{SmtpClientInnerStream, TlsClientUpgrader, Upgrader};
 
     //
     //
@@ -108,76 +110,6 @@ mod mail_futures_io_tests {
                 owner: "SimpleTlsClientUpgrader".to_owned(),
             })
         }
-    }
-
-    //
-    //
-    //
-    #[test]
-    fn imap_case1() -> io::Result<()> {
-        block_on(async {
-            let (sender, receiver) = unbounded::<String>();
-
-            let cursor = Cursor::new(b"foo".to_vec());
-            let mut stream = ImapClientInnerStream::with_imap_client(
-                cursor,
-                SimpleTlsClientUpgrader::new(sender.clone()),
-            );
-
-            stream.write(b"").await?;
-
-            let mut buf = vec![0u8; 5];
-            let n = stream.read(&mut buf).await?;
-            assert_eq!(n, 3);
-            assert_eq!(buf, b"foo\0\0");
-
-            stream.upgrade().await?;
-
-            assert_eq!(
-                receiver.recv().await.unwrap(),
-                "call SimpleTlsClientUpgrader.upgrade"
-            );
-            assert_eq!(receiver.try_recv().err(), Some(TryRecvError::Empty));
-
-            Ok(())
-        })
-    }
-
-    #[test]
-    fn imap_case2() -> io::Result<()> {
-        block_on(async {
-            let (sender, receiver) = unbounded::<String>();
-
-            let cursor = Cursor::new(b"foo".to_vec());
-            let mut stream = ImapClientInnerStream::with_imap_client(
-                cursor,
-                SimpleTlsClientUpgrader::new(sender.clone()),
-            );
-            stream.upgrade().await?;
-
-            stream.write(b"").await?;
-
-            let mut buf = vec![0u8; 5];
-            let n = stream.read(&mut buf).await?;
-            assert_eq!(n, 3);
-            assert_eq!(buf, b"foo\0\0");
-
-            assert_eq!(
-                receiver.recv().await.unwrap(),
-                "call SimpleTlsClientUpgrader.upgrade"
-            );
-            assert_eq!(
-                receiver.recv().await.unwrap(),
-                "call SimpleTlsStream.poll_write via SimpleTlsClientUpgrader"
-            );
-            assert_eq!(
-                receiver.recv().await.unwrap(),
-                "call SimpleTlsStream.poll_read via SimpleTlsClientUpgrader"
-            );
-            assert_eq!(receiver.try_recv().err(), Some(TryRecvError::Empty));
-
-            Ok(())
-        })
     }
 
     //
