@@ -13,7 +13,8 @@ cfg_if::cfg_if! {
         pub mod syncable_with_waker;
         pub use syncable_with_waker::SyncableWithWakerAsyncStream;
     } else if #[cfg(all(feature = "syncable_with_waker", not(feature = "futures_io"), feature = "tokio_io"))] {
-        // Not support
+        pub mod syncable_with_waker;
+        pub use syncable_with_waker::SyncableWithWakerAsyncStream;
     }
 }
 

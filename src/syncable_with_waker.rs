@@ -6,7 +6,8 @@ use std::io::{self, Read, Seek, Write};
 use std::pin::Pin;
 use std::sync::Arc;
 
-use futures_util::task::{waker_ref, ArcWake, AtomicWaker, Context, Poll, Waker};
+use futures_core::task::__internal::AtomicWaker;
+use futures_task::{waker_ref, ArcWake, Context, Poll, Waker};
 use futures_x_io::{AsyncRead, AsyncSeek, AsyncWrite};
 
 pub struct SyncableWithWakerAsyncStream<S> {
@@ -122,9 +123,23 @@ impl<S> Seek for SyncableWithWakerAsyncStream<S>
 where
     S: AsyncSeek + Unpin,
 {
+    #[cfg(all(feature = "futures_io", not(feature = "tokio_io")))]
     fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
         match self.with_context(WakerKind::Read, |cx, stream| stream.poll_seek(cx, pos)) {
             Poll::Ready(ret) => ret,
+            Poll::Pending => Err(io::ErrorKind::WouldBlock.into()),
+        }
+    }
+
+    #[cfg(all(not(feature = "futures_io"), feature = "tokio_io"))]
+    fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
+        match self.with_context(WakerKind::Read, |cx, stream| stream.start_seek(cx, pos)) {
+            Poll::Ready(_) => {
+                match self.with_context(WakerKind::Read, |cx, stream| stream.poll_complete(cx)) {
+                    Poll::Ready(ret) => ret,
+                    Poll::Pending => Err(io::ErrorKind::WouldBlock.into()),
+                }
+            }
             Poll::Pending => Err(io::ErrorKind::WouldBlock.into()),
         }
     }
